@@ -10,8 +10,12 @@ import { MatchScene } from './scenes/MatchScene';
 const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 720,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     backgroundColor: '#000000',
     pixelArt: true, // 2D 도트 감성을 살리기 위한 설정
     physics: {

@@ -10,16 +10,16 @@ export class TitleScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor('#1a1a2e');
 
         // 타이틀 제목 텍스트
-        this.add.text(400, 200, '⚾ 나만의 야구 RPG ⚾', {
-            fontSize: '48px', fill: '#fca311', fontStyle: 'bold'
+        this.add.text(640, 250, '⚾ 나만의 야구 RPG ⚾', {
+            fontSize: '56px', fill: '#fca311', fontStyle: 'bold'
         }).setOrigin(0.5);
 
         // 💾 로컬 스토리지에 저장된 데이터 확인
         const savedData = localStorage.getItem('baseball_rpg_save');
 
         // [ 새로 하기 ] 버튼
-        const startBtn = this.add.text(400, 360, '[ 새로 하기 ]', {
-            fontSize: '32px', fill: '#ffffff', backgroundColor: '#16213e', padding: { x: 20, y: 10 }
+        const startBtn = this.add.text(640, 450, '[ 새로 하기 ]', {
+            fontSize: '36px', fill: '#ffffff', backgroundColor: '#16213e', padding: { x: 20, y: 10 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         startBtn.on('pointerover', () => startBtn.setStyle({ fill: '#ccff00' }));
@@ -32,8 +32,8 @@ export class TitleScene extends Phaser.Scene {
         });
 
         // [ 이어 하기 ] 버튼
-        const loadBtn = this.add.text(400, 440, '[ 이어 하기 ]', {
-            fontSize: '32px', fill: savedData ? '#ffffff' : '#555555', backgroundColor: '#16213e', padding: { x: 20, y: 10 }
+        const loadBtn = this.add.text(640, 550, '[ 이어 하기 ]', {
+            fontSize: '36px', fill: savedData ? '#ffffff' : '#555555', backgroundColor: '#16213e', padding: { x: 20, y: 10 }
         }).setOrigin(0.5);
 
         // 저장된 데이터가 있을 때만 클릭 가능

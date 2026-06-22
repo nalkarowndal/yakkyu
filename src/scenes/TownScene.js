@@ -13,7 +13,7 @@ export class TownScene extends Phaser.Scene {
         this.trainingContainer = null;
 
         // 🌿 화사하고 밝은 연두색 잔디밭 (밀도감의 베이스)
-        this.add.rectangle(400, 300, 800, 600, 0xc5e1a5).setDepth(-10);
+        this.add.rectangle(640, 360, 1280, 720, 0xc5e1a5).setDepth(-10);
         
         // 🟨 노란색/갈색 격자무늬(Tile) 타일로 촘촘하게 마을 산책로(Path) 깔기
         // 쿼터뷰 느낌을 주기 위해 다이아몬드(사선) 패턴 생성
@@ -32,13 +32,13 @@ export class TownScene extends Phaser.Scene {
 
         // 🌳🌲🌻 풍성한 장식용 자연 오브젝트 대량 배치 (빈 공간 채우기)
         const decos = ['🌳', '🌲', '🌴', '🌻', '🌻', '💈', '💡'];
-        for (let i = 0; i < 80; i++) {
-            const dx = Phaser.Math.Between(10, 790);
-            const dy = Phaser.Math.Between(10, 590);
+        for (let i = 0; i < 150; i++) {
+            const dx = Phaser.Math.Between(10, 1270);
+            const dy = Phaser.Math.Between(10, 710);
             
             // 메인 건물 위치들 근처는 살짝 피해서 배치
-            if ((dx > 150 && dx < 250) || (dx > 550 && dx < 650)) continue; 
-            if (dx > 300 && dx < 500 && dy > 200 && dy < 400) continue; // 중앙 경기장 피하기
+            if ((dx > 250 && dx < 350) || (dx > 930 && dx < 1030)) continue; 
+            if (dx > 500 && dx < 780 && dy > 240 && dy < 480) continue; // 중앙 경기장 피하기
             
             const deco = Phaser.Utils.Array.GetRandom(decos);
             const size = (deco === '🌻') ? '20px' : '40px';
@@ -47,9 +47,9 @@ export class TownScene extends Phaser.Scene {
 
         // 🏘️ 배경용 귀여운 쿼터뷰 집들 (빨강/파랑 지붕 등 다채로운 색상)
         const roofColors = [0xe53935, 0x1e88e5, 0x8e24aa, 0xfb8c00];
-        for (let i = 0; i < 20; i++) {
-            const hx = Phaser.Math.Between(40, 760);
-            const hy = Phaser.Math.Between(40, 560);
+        for (let i = 0; i < 30; i++) {
+            const hx = Phaser.Math.Between(40, 1240);
+            const hy = Phaser.Math.Between(40, 680);
             
             // 겹치지 않게 메인 구역 피하기
             if (hx > 100 && hx < 700 && hy > 100 && hy < 500) continue;
@@ -131,9 +131,9 @@ export class TownScene extends Phaser.Scene {
         this.add.text(20, 60, `환영합니다, [${playerData.team || '무소속'}] ${playerData.name} 선수!`, { fontSize: '22px', fill: '#a8d8ea', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(1000);
 
         // 💰 현재 보유 골드 표시 (화면 우측 상단)
-        this.goldText = this.add.text(760, 40, `보유 골드: ${playerData.gold || 0} G`, { fontSize: '20px', fill: '#ffd700', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(1, 0.5).setDepth(1000);
+        this.goldText = this.add.text(1240, 40, `보유 골드: ${playerData.gold || 0} G`, { fontSize: '20px', fill: '#ffd700', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(1, 0.5).setDepth(1000);
         // 📊 현재 보유 경험치 표시 (화면 우측 상단)
-        this.expText = this.add.text(760, 70, `경험치: ${playerData.exp || 0} EXP`, { fontSize: '20px', fill: '#00ffcc', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(1, 0.5).setDepth(1000);
+        this.expText = this.add.text(1240, 70, `경험치: ${playerData.exp || 0} EXP`, { fontSize: '20px', fill: '#00ffcc', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(1, 0.5).setDepth(1000);
 
         // 🎵 음소거(Mute) 토글 버튼 (좌측 상단)
         const soundBtn = this.add.text(20, 20, this.sound.mute ? '🔇' : '🔊', { fontSize: '28px' })
@@ -150,7 +150,7 @@ export class TownScene extends Phaser.Scene {
         this.dialogSystem = new DialogSystem(this);
 
         // 🏋️ 훈련소 (좌측 하단)
-        this.createCuteVillageBuilding(200, 420, 150, 130, 'gym', '🏋️', '훈련소', () => {
+        this.createCuteVillageBuilding(300, 500, 150, 130, 'gym', '🏋️', '훈련소', () => {
             if (this.dialogSystem.isShowing) return; // 이미 대화 중이면 무시
             
             this.dialogSystem.show([
@@ -164,7 +164,7 @@ export class TownScene extends Phaser.Scene {
         });
 
         // 🏥 구단 병원 (좌측 상단)
-        this.createCuteVillageBuilding(200, 150, 150, 130, 'hospital', '🏥', '구단 병원', () => {
+        this.createCuteVillageBuilding(300, 200, 150, 130, 'hospital', '🏥', '구단 병원', () => {
             if (this.dialogSystem.isShowing) return;
             
             const pd = this.registry.get('playerData');
@@ -187,7 +187,7 @@ export class TownScene extends Phaser.Scene {
         });
 
         // 🛒 스포츠 샵 (우측 상단)
-        this.createCuteVillageBuilding(600, 150, 150, 130, 'shop', '🛒', '스포츠 샵', () => {
+        this.createCuteVillageBuilding(980, 200, 150, 130, 'shop', '🛒', '스포츠 샵', () => {
             if (this.dialogSystem.isShowing) return;
             
             // 대화가 끝난 후 openShopUI() 함수를 실행하도록 콜백 전달 (핵심! 🌟)
@@ -211,7 +211,7 @@ export class TownScene extends Phaser.Scene {
 
         const matchDesc = `정규시즌 [${Math.min(matchIndex + 1, totalMatches)}/${totalMatches}]\n${month}월 ${day}일 vs ${opponent}`;
 
-        this.createCuteVillageBuilding(400, 320, 220, 180, 'stadium', '🏟️', matchDesc, () => {
+        this.createCuteVillageBuilding(640, 360, 220, 180, 'stadium', '🏟️', matchDesc, () => {
             if (matchIndex >= totalMatches) {
                 alert('이번 시즌의 모든 정규 경기를 마쳤습니다!');
                 return;
@@ -311,7 +311,7 @@ export class TownScene extends Phaser.Scene {
         }
 
         // UI 요소들을 하나로 묶어줄 컨테이너 생성 (화면 중앙 위치, 가장 위에 보이도록 Z-Depth 높게 설정)
-        this.shopContainer = this.add.container(400, 300).setDepth(2000);
+        this.shopContainer = this.add.container(640, 360).setDepth(2000);
 
         // 반투명 배경 패널
         const bg = this.add.rectangle(0, 0, 500, 530, 0x111111, 0.95).setStrokeStyle(4, 0xffd700);
@@ -361,11 +361,11 @@ export class TownScene extends Phaser.Scene {
                         this.goldText.setText(`보유 골드: ${pd.gold} G`); // UI 즉시 반영
                         
                         // 구매 성공 연출 (위로 떠오르며 사라지는 텍스트)
-                        const effect = this.add.text(400, 300 + yPos, '구매 완료!', { fontSize: '24px', fill: '#ff0', fontStyle: 'bold' }).setDepth(2001).setOrigin(0.5);
+                        const effect = this.add.text(640, 360 + yPos, '구매 완료!', { fontSize: '24px', fill: '#ff0', fontStyle: 'bold' }).setDepth(2001).setOrigin(0.5);
                         this.tweens.add({ targets: effect, y: effect.y - 50, alpha: 0, duration: 1000, onComplete: () => effect.destroy() });
                     } else {
                         // 골드 부족 연출
-                        const effect = this.add.text(400, 300 + yPos, '골드가 부족합니다!', { fontSize: '24px', fill: '#f00', fontStyle: 'bold' }).setDepth(2001).setOrigin(0.5);
+                        const effect = this.add.text(640, 360 + yPos, '골드가 부족합니다!', { fontSize: '24px', fill: '#f00', fontStyle: 'bold' }).setDepth(2001).setOrigin(0.5);
                         this.tweens.add({ targets: effect, y: effect.y - 50, alpha: 0, duration: 1000, onComplete: () => effect.destroy() });
                     }
                 });
@@ -384,7 +384,7 @@ export class TownScene extends Phaser.Scene {
             return;
         }
 
-        this.hospitalContainer = this.add.container(400, 300).setDepth(2000);
+        this.hospitalContainer = this.add.container(640, 360).setDepth(2000);
 
         const bg = this.add.rectangle(0, 0, 500, 400, 0x111111, 0.95).setStrokeStyle(4, 0xff758f);
         const title = this.add.text(0, -160, '- 구단 병원 -', { fontSize: '28px', fill: '#ff758f', fontStyle: 'bold' }).setOrigin(0.5);
@@ -473,7 +473,7 @@ export class TownScene extends Phaser.Scene {
     }
 
     showHospitalEffect(message, color, yPos) {
-        const effect = this.add.text(400, 300 + yPos, message, { fontSize: '22px', fill: color, fontStyle: 'bold', align: 'center' }).setDepth(2001).setOrigin(0.5);
+        const effect = this.add.text(640, 360 + yPos, message, { fontSize: '22px', fill: color, fontStyle: 'bold', align: 'center' }).setDepth(2001).setOrigin(0.5);
         this.tweens.add({ targets: effect, y: effect.y - 50, alpha: 0, duration: 1500, onComplete: () => effect.destroy() });
     }
 
@@ -484,7 +484,7 @@ export class TownScene extends Phaser.Scene {
             return;
         }
 
-        this.trainingContainer = this.add.container(400, 300).setDepth(2000);
+        this.trainingContainer = this.add.container(640, 360).setDepth(2000);
 
         const bg = this.add.rectangle(0, 0, 500, 400, 0x111111, 0.95).setStrokeStyle(4, 0x00ffcc);
         const title = this.add.text(0, -160, '- 코치의 훈련소 -', { fontSize: '28px', fill: '#00ffcc', fontStyle: 'bold' }).setOrigin(0.5);
@@ -542,10 +542,10 @@ export class TownScene extends Phaser.Scene {
                         this.expText.setText(`경험치: ${currentPd.exp} EXP`);
                         this.updateTrainingUI(); // 텍스트 갱신
                         
-                        const effect = this.add.text(400, 300 + yPos, '스탯 상승!', { fontSize: '24px', fill: '#00ffcc', fontStyle: 'bold' }).setDepth(2001).setOrigin(0.5);
+                        const effect = this.add.text(640, 360 + yPos, '스탯 상승!', { fontSize: '24px', fill: '#00ffcc', fontStyle: 'bold' }).setDepth(2001).setOrigin(0.5);
                         this.tweens.add({ targets: effect, y: effect.y - 30, alpha: 0, duration: 1000, onComplete: () => effect.destroy() });
                     } else {
-                        const effect = this.add.text(400, 300 + yPos, '경험치 부족!', { fontSize: '24px', fill: '#f00', fontStyle: 'bold' }).setDepth(2001).setOrigin(0.5);
+                        const effect = this.add.text(640, 360 + yPos, '경험치 부족!', { fontSize: '24px', fill: '#f00', fontStyle: 'bold' }).setDepth(2001).setOrigin(0.5);
                         this.tweens.add({ targets: effect, y: effect.y - 30, alpha: 0, duration: 1000, onComplete: () => effect.destroy() });
                     }
                 });

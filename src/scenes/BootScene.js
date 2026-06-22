@@ -18,7 +18,7 @@ export class BootScene extends Phaser.Scene {
         this.load.image('shop_portrait', 'assets/shop.png');
         
         // 로딩 중임을 알리는 텍스트
-        this.add.text(400, 300, '로딩 중...', { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
+        this.add.text(640, 360, '로딩 중...', { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
 
         // 🎨 외부 파일 없이 코드로 직접 픽셀 아트와 배경 텍스처 생성
         this.createPixelArtTextures();
@@ -154,70 +154,70 @@ export class BootScene extends Phaser.Scene {
         
         // 🌌 하늘
         bgBack.fillStyle(0x4a90e2);
-        bgBack.fillRect(0, 0, 800, 130);
+        bgBack.fillRect(0, 0, 1280, 180);
 
         // 📺 중앙 대형 전광판
         bgBack.fillStyle(0x222222);
-        bgBack.fillRect(280, 20, 240, 110); // 테두리 프레임
+        bgBack.fillRect(520, 20, 240, 110); // 테두리 프레임
         bgBack.fillStyle(0x111111);
-        bgBack.fillRect(290, 30, 220, 90); // 내부 스크린
+        bgBack.fillRect(530, 30, 220, 90); // 내부 스크린
         bgBack.fillStyle(0x00b4d8);
-        bgBack.fillRect(300, 40, 200, 45); // 메인 비디오 보드 (빛나는 느낌)
+        bgBack.fillRect(540, 40, 200, 45); // 메인 비디오 보드 (빛나는 느낌)
         bgBack.fillStyle(0xffaa00);
-        bgBack.fillRect(300, 95, 70, 15); // 좌측 텍스트 UI 느낌
+        bgBack.fillRect(540, 95, 70, 15); // 좌측 텍스트 UI 느낌
         bgBack.fillStyle(0xffaa00);
-        bgBack.fillRect(380, 95, 120, 15); // 우측 텍스트 UI 느낌
+        bgBack.fillRect(620, 95, 120, 15); // 우측 텍스트 UI 느낌
 
         // 🏟️ 외야 관중석 (Stands)
         bgBack.fillStyle(0x2d3436);
-        bgBack.fillRect(0, 130, 800, 70);
+        bgBack.fillRect(0, 180, 1280, 70);
 
         // 👥 수많은 관중들 (랜덤 도트 파티클)
         const crowdColors = [0xff0000, 0x0055ff, 0xffffff, 0xfca311, 0x00ffcc, 0xff66bb];
-        for (let i = 0; i < 1200; i++) {
-            let cx = Math.random() * 800;
-            let cy = 130 + (Math.random() * 65);
+        for (let i = 0; i < 1800; i++) {
+            let cx = Math.random() * 1280;
+            let cy = 180 + (Math.random() * 65);
             bgBack.fillStyle(crowdColors[Math.floor(Math.random() * crowdColors.length)]);
             bgBack.fillRect(cx, cy, 3, 3);
         }
 
         // 🟡 큼직한 파울 폴대 (Foul Poles)
         bgBack.fillStyle(0xffff00);
-        bgBack.fillRect(90, 60, 6, 140); // 좌측
-        bgBack.fillRect(704, 60, 6, 140); // 우측
+        bgBack.fillRect(200, 60, 6, 190); // 좌측
+        bgBack.fillRect(1080, 60, 6, 190); // 우측
 
         // 🧱 외야 펜스
         bgBack.fillStyle(0x1D3557);
-        bgBack.fillRect(0, 200, 800, 20);
+        bgBack.fillRect(0, 250, 1280, 20);
         bgBack.lineStyle(2, 0xffffff);
         bgBack.beginPath();
-        bgBack.moveTo(0, 200); bgBack.lineTo(800, 200); // 펜스 윗부분 라인
+        bgBack.moveTo(0, 250); bgBack.lineTo(1280, 250); // 펜스 윗부분 라인
         bgBack.strokePath();
         
         // 잔디밭
         bgBack.fillStyle(0x386641);
-        bgBack.fillRect(0, 220, 800, 380);
+        bgBack.fillRect(0, 270, 1280, 450);
         
         // 파울 라인 (아래에서 위로 모이는 원근감 적용)
         bgBack.lineStyle(4, 0xffffff);
         bgBack.beginPath();
-        bgBack.moveTo(400, 600); bgBack.lineTo(93, 220); // 좌측 파울 폴대에 연결되도록 각도 수정
-        bgBack.moveTo(400, 600); bgBack.lineTo(707, 220); // 우측 파울 폴대에 연결되도록 각도 수정
+        bgBack.moveTo(640, 720); bgBack.lineTo(203, 270); // 좌측 파울 폴대에 연결되도록 각도 수정
+        bgBack.moveTo(640, 720); bgBack.lineTo(1077, 270); // 우측 파울 폴대에 연결되도록 각도 수정
         bgBack.strokePath();
 
         // 투수 마운드 및 발판 (작고 납작한 타원으로 원근감 표현)
         bgBack.fillStyle(0xbc4749);
-        bgBack.fillEllipse(400, 254, 160, 45); 
+        bgBack.fillEllipse(640, 330, 200, 50); 
         bgBack.fillStyle(0xf2e8cf);
-        bgBack.fillRect(380, 248, 40, 6); 
+        bgBack.fillRect(620, 324, 40, 6); 
 
         // 홈 플레이트 (화면 바로 앞이므로 아주 큼지막하게)
         bgBack.fillStyle(0xbc4749);
-        bgBack.fillEllipse(400, 530, 350, 100); 
+        bgBack.fillEllipse(640, 650, 400, 100); 
         bgBack.fillStyle(0xf2e8cf);
-        bgBack.fillPoints([{x: 400, y: 550}, {x: 420, y: 535}, {x: 420, y: 515}, {x: 380, y: 515}, {x: 380, y: 535}], true);
+        bgBack.fillPoints([{x: 640, y: 670}, {x: 660, y: 655}, {x: 660, y: 635}, {x: 620, y: 635}, {x: 620, y: 655}], true);
 
-        bgBack.generateTexture('stadium_backstop', 800, 600);
+        bgBack.generateTexture('stadium_backstop', 1280, 720);
 
         // 2. 캐릭터 및 공 픽셀 아트 생성 (ASCII 배열 형태)
         const palette = {

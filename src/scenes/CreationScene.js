@@ -85,16 +85,16 @@ export class CreationScene extends Phaser.Scene {
     this.uiContainer.style.top = '50%';
     this.uiContainer.style.left = '50%';
     this.uiContainer.style.transform = 'translate(-50%, -50%)';
-    this.uiContainer.style.width = '600px';
+    this.uiContainer.style.width = '800px';
     this.uiContainer.style.backgroundColor = 'rgba(13, 27, 42, 0.9)';
     this.uiContainer.style.border = '2px solid #00b4d8';
     this.uiContainer.style.borderRadius = '15px';
-    this.uiContainer.style.padding = '20px';
+    this.uiContainer.style.padding = '30px';
     this.uiContainer.style.color = '#fff';
     this.uiContainer.style.fontFamily = 'sans-serif';
     this.uiContainer.style.display = 'flex';
     this.uiContainer.style.flexDirection = 'column';
-    this.uiContainer.style.gap = '15px';
+    this.uiContainer.style.gap = '20px';
     this.uiContainer.style.boxShadow = '0px 10px 30px rgba(0,0,0,0.5)';
 
     // game-container가 없으면 문서의 기본 body에 UI를 부착하도록 안전하게 변경
