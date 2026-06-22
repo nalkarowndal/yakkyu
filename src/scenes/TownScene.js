@@ -314,11 +314,11 @@ export class TownScene extends Phaser.Scene {
         this.shopContainer = this.add.container(400, 300).setDepth(2000);
 
         // 반투명 배경 패널
-        const bg = this.add.rectangle(0, 0, 500, 400, 0x111111, 0.95).setStrokeStyle(4, 0xffd700);
+        const bg = this.add.rectangle(0, 0, 500, 530, 0x111111, 0.95).setStrokeStyle(4, 0xffd700);
         const title = this.add.text(0, -160, '- 장비 상점 -', { fontSize: '28px', fill: '#ffd700', fontStyle: 'bold' }).setOrigin(0.5);
 
         // 닫기 버튼
-        const closeBtn = this.add.text(0, 160, '[ 닫기 ]', { fontSize: '24px', fill: '#fff', backgroundColor: '#333', padding: { x: 20, y: 5 } })
+        const closeBtn = this.add.text(0, 230, '[ 닫기 ]', { fontSize: '24px', fill: '#fff', backgroundColor: '#333', padding: { x: 20, y: 5 } })
             .setOrigin(0.5).setInteractive({ useHandCursor: true })
             .on('pointerdown', () => this.shopContainer.setVisible(false));
         
@@ -332,11 +332,14 @@ export class TownScene extends Phaser.Scene {
             { name: '🔥 파워 배트', stat: 'power', amount: 5, price: 50 },
             { name: '👁️ 정밀 글러브', stat: 'contact', amount: 5, price: 50 },
             { name: '🏃 초경량 스파이크', stat: 'speed', amount: 5, price: 50 },
-            { name: '🔋 고농축 에너지 드링크', stat: 'stamina', amount: 10, price: 30 }
+            { name: '🔋 고농축 에너지 드링크', stat: 'stamina', amount: 10, price: 30 },
+            { name: '⚡ 구속 강화 트레이닝볼', stat: 'velocity', amount: 5, price: 50 },
+            { name: '🎯 제구 훈련 키트', stat: 'control', amount: 5, price: 50 },
+            { name: '📖 비밀 변화구 교본', stat: 'movement', amount: 5, price: 60 }
         ];
 
         items.forEach((item, index) => {
-            const yPos = -80 + (index * 60); // 위에서부터 아래로 나열
+            const yPos = -170 + (index * 50); // 위에서부터 아래로 나열
             
             // 아이템 이름 및 스탯 표시
             const itemText = this.add.text(-220, yPos, `${item.name} (+${item.amount}) - ${item.price} G`, { fontSize: '20px', fill: '#fff' }).setOrigin(0, 0.5);
