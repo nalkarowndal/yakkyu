@@ -1,3 +1,5 @@
+import { DIALOG_UI } from '../constants/Layout.js';
+
 export class DialogSystem {
     constructor(scene) {
         this.scene = scene;
@@ -11,32 +13,32 @@ export class DialogSystem {
     }
 
     createUI() {
-        // 대화창 배경 (화면 하단)
-        this.bg = this.scene.add.rectangle(400, 500, 700, 130, 0x1a1a2e, 0.9)
+        // 대화창 배경 (화면 하단 중앙)
+        this.bg = this.scene.add.rectangle(DIALOG_UI.BG.x, DIALOG_UI.BG.y, DIALOG_UI.BG.width, DIALOG_UI.BG.height, 0x1a1a2e, 0.9)
             .setStrokeStyle(3, 0x00b4d8)
             .setDepth(1000)
             .setInteractive({ useHandCursor: true })
             .setVisible(false);
 
         // 🖼️ 초상화 배경 네모칸 (대화창 좌측 내부에 위치)
-        this.portraitBg = this.scene.add.rectangle(120, 500, 100, 100, 0x000000, 0.8)
+        this.portraitBg = this.scene.add.rectangle(DIALOG_UI.PORTRAIT_BG.x, DIALOG_UI.PORTRAIT_BG.y, DIALOG_UI.PORTRAIT_BG.size, DIALOG_UI.PORTRAIT_BG.size, 0x000000, 0.8)
             .setStrokeStyle(3, 0x00b4d8).setDepth(1001)
             .setInteractive({ useHandCursor: true })
             .setVisible(false);
 
         // 🖼️ 초상화 이미지/텍스트 (이모지 또는 주인공 픽셀 스프라이트)
-        this.portraitText = this.scene.add.text(120, 500, '', { fontSize: '60px' }).setOrigin(0.5).setDepth(1002).setVisible(false);
-        this.portraitSprite = this.scene.add.sprite(120, 500, '').setOrigin(0.5).setDepth(1002).setVisible(false);
+        this.portraitText = this.scene.add.text(DIALOG_UI.PORTRAIT.x, DIALOG_UI.PORTRAIT.y, '', { fontSize: '60px' }).setOrigin(0.5).setDepth(1002).setVisible(false);
+        this.portraitSprite = this.scene.add.sprite(DIALOG_UI.PORTRAIT.x, DIALOG_UI.PORTRAIT.y, '').setOrigin(0.5).setDepth(1002).setVisible(false);
 
         // 화자 이름 텍스트
-        this.nameText = this.scene.add.text(185, 420, '', {
+        this.nameText = this.scene.add.text(DIALOG_UI.NAME_TEXT.x, DIALOG_UI.NAME_TEXT.y, '', {
             fontSize: '22px', fill: '#ccff00', fontStyle: 'bold', 
             backgroundColor: '#000', padding: { x: 15, y: 5 }
         }).setDepth(1001).setVisible(false);
 
         // 대화 내용 텍스트
-        this.dialogueText = this.scene.add.text(185, 460, '', {
-            fontSize: '20px', fill: '#ffffff', wordWrap: { width: 545, useAdvancedWrap: true },
+        this.dialogueText = this.scene.add.text(DIALOG_UI.DIALOGUE_TEXT.x, DIALOG_UI.DIALOGUE_TEXT.y, '', {
+            fontSize: '20px', fill: '#ffffff', wordWrap: { width: DIALOG_UI.DIALOGUE_TEXT.wordWrapWidth, useAdvancedWrap: true },
             lineSpacing: 8
         }).setDepth(1001).setVisible(false);
 

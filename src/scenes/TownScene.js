@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { DialogSystem } from '../systems/DialogSystem';
+import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, TOWN_BOUNDS } from '../constants/Layout';
 
 export class TownScene extends Phaser.Scene {
     constructor() {
@@ -87,8 +88,8 @@ export class TownScene extends Phaser.Scene {
             }).setDepth(500); // 제일 위 (하늘)
             
             this.tweens.add({
-                targets: cloud, x: 900, duration: Phaser.Math.Between(20000, 40000), repeat: -1,
-                onRepeat: () => { cloud.x = -100; cloud.y = Phaser.Math.Between(10, 500); }
+                targets: cloud, x: TOWN_BOUNDS.CLOUD.endX, duration: Phaser.Math.Between(20000, 40000), repeat: -1,
+                onRepeat: () => { cloud.x = TOWN_BOUNDS.CLOUD.startX; cloud.y = Phaser.Math.Between(TOWN_BOUNDS.CLOUD.minY, TOWN_BOUNDS.CLOUD.maxY); }
             });
         }
 
@@ -100,13 +101,13 @@ export class TownScene extends Phaser.Scene {
             
             let startX, startY, endX, endY;
             if (isHorizontal) {
-                startX = isForward ? -100 : 900;
-                endX = isForward ? 900 : -100;
+                startX = isForward ? -100 : TOWN_BOUNDS.CAR_HORIZONTAL.end;
+                endX = isForward ? TOWN_BOUNDS.CAR_HORIZONTAL.end : -100;
                 startY = endY = isForward ? 330 : 270;
             } else {
                 startX = endX = isForward ? 370 : 430;
-                startY = isForward ? -100 : 700;
-                endY = isForward ? 700 : -100;
+                startY = isForward ? -100 : TOWN_BOUNDS.CAR_VERTICAL.end;
+                endY = isForward ? TOWN_BOUNDS.CAR_VERTICAL.end : -100;
             }
 
             const car = this.add.text(startX, startY, Phaser.Utils.Array.GetRandom(carIcons), { fontSize: '30px' })

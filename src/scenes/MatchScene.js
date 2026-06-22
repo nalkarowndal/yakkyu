@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Ball } from '../entities/Ball';
 import { MatchSystem } from '../systems/MatchSystem';
 import { PITCH_TYPES, PITCH_LIST } from '../constants/PitchTypes';
+import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, BACK_VIEW, TOP_DOWN_VIEW, FIELDER_POSITIONS, PITCH_CLICK_AREA, SWING_CLICK_AREA, PITCH_BUTTON_LAYOUT, MATCH_UI } from '../constants/Layout';
 
 export class MatchScene extends Phaser.Scene {
     constructor() {
@@ -76,26 +77,26 @@ export class MatchScene extends Phaser.Scene {
         this.isGameOver = false;
 
         const roleText = this.playerData.position || (this.playerData.role === 'batter' ? '타자' : '투수');
-        this.roleTextObj = this.add.text(1260, 650, `[ ${this.playerData.name} - ${roleText} ]`, { fontSize: '14px', fill: '#ccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 10, y: 5 } }).setOrigin(1, 0.5);
+        this.roleTextObj = this.add.text(MATCH_UI.ROLE_TEXT.x, MATCH_UI.ROLE_TEXT.y, `[ ${this.playerData.name} - ${roleText} ]`, { fontSize: '14px', fill: '#ccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 10, y: 5 } }).setOrigin(1, 0.5);
         this.uiElements.push(this.roleTextObj);
 
         // 🤖 AI 스탯 텍스트 UI 생성 (우측 상단 미니맵 아래로 이동)
-        this.aiStatText = this.add.text(1260, 250, '', { fontSize: '14px', fill: '#ffcccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 10, y: 4 } }).setOrigin(1, 0.5).setDepth(20);
+        this.aiStatText = this.add.text(MATCH_UI.AI_STAT_TEXT.x, MATCH_UI.AI_STAT_TEXT.y, '', { fontSize: '14px', fill: '#ffcccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 10, y: 4 } }).setOrigin(1, 0.5).setDepth(20);
         this.uiElements.push(this.aiStatText);
         this.updateAIStatUI();
 
         // 🌟 현대적인 스트라이크 존 시각화 (반투명 영역 및 뚜렷한 경계선)
-        this.strikeZone = this.add.rectangle(640, 450, 100, 150, 0x00aaff, 0.15).setStrokeStyle(3, 0xffffff, 0.8);
+        this.strikeZone = this.add.rectangle(BACK_VIEW.STRIKE_ZONE.x, BACK_VIEW.STRIKE_ZONE.y, BACK_VIEW.STRIKE_ZONE.width, BACK_VIEW.STRIKE_ZONE.height, 0x00aaff, 0.15).setStrokeStyle(3, 0xffffff, 0.8);
         this.uiElements.push(this.strikeZone); // UI 엘리먼트에 추가하여 페이드 인/아웃 동기화
         
         // 투수 마운드 및 홈 플레이트 좌표 정의
-        this.moundPosition = { x: 640, y: 250 };
-        this.homePlatePosition = { x: 640, y: 500 };
+        this.moundPosition = { x: BACK_VIEW.MOUND.x, y: BACK_VIEW.MOUND.y };
+        this.homePlatePosition = { x: BACK_VIEW.HOME_PLATE.x, y: BACK_VIEW.HOME_PLATE.y };
 
         // 배경 및 캐릭터 이미지 배치 (가장 뒤에 렌더링되도록 Z-depth 설정)
-        this.stadiumBg = this.add.image(640, 360, 'stadium').setDepth(-10).setTint(0xbbbbbb);
-        this.pitcherSprite = this.add.image(this.moundPosition.x, this.moundPosition.y, 'pitcher').setOrigin(0.5, 1).setDepth(-5).setScale(0.7);
-        this.batterSprite = this.add.image(520, 650, 'batter').setOrigin(0.5, 1).setDepth(5).setScale(1.8);
+        this.stadiumBg = this.add.image(CENTER_X, CENTER_Y, 'stadium').setDepth(-10).setTint(0xbbbbbb);
+        this.pitcherSprite = this.add.image(this.moundPosition.x, this.moundPosition.y, 'pitcher').setOrigin(0.5, 1).setDepth(-5).setScale(BACK_VIEW.PITCHER_SCALE);
+        this.batterSprite = this.add.image(BACK_VIEW.HOME_PLATE.x + BACK_VIEW.BATTER_OFFSET.x, BACK_VIEW.HOME_PLATE.y + BACK_VIEW.BATTER_OFFSET.y, 'batter').setOrigin(0.5, 1).setDepth(5).setScale(BACK_VIEW.BATTER_SCALE);
 
         // 투수 & 타자 대기(Idle) 애니메이션 (숨쉬는 효과)
         this.tweens.add({
@@ -119,15 +120,7 @@ export class MatchScene extends Phaser.Scene {
 
         // 🏃 탑다운 뷰(수비 시점)에서만 나타날 수비수(야수) 7명 배치 (확장된 구장 스케일에 맞게 조정)
         this.fielders = [];
-        const fielderCoords = [
-            { x: 770, y: 340, role: '1B', name: '1루수' },
-            { x: 690, y: 240, role: '2B', name: '2루수' },
-            { x: 510, y: 340, role: '3B', name: '3루수' },
-            { x: 590, y: 240, role: 'SS', name: '유격수' },
-            { x: 440, y: 80,  role: 'LF', name: '좌익수' },
-            { x: 640, y: 20,  role: 'CF', name: '중견수' },
-            { x: 840, y: 80,  role: 'RF', name: '우익수' }
-        ];
+        const fielderCoords = FIELDER_POSITIONS;
         fielderCoords.forEach(coord => {
             const fielder = this.add.sprite(coord.x, coord.y, 'pitcher').setScale(0.5).setAlpha(0).setDepth(4);
             fielder.originalX = coord.x;
@@ -149,7 +142,7 @@ export class MatchScene extends Phaser.Scene {
         this.ball.setVisible(false);
 
         // 판정 결과 텍스트 (화면 중앙 강렬한 메시지)
-        this.resultText = this.add.text(640, 320, '', { 
+        this.resultText = this.add.text(MATCH_UI.RESULT_TEXT.x, MATCH_UI.RESULT_TEXT.y, '', { 
             fontSize: '36px', 
             fontStyle: 'bold', 
             fill: '#ffffff',
@@ -166,12 +159,12 @@ export class MatchScene extends Phaser.Scene {
         }
 
         // 마을로 돌아가기 버튼 (상단 우측으로 이동)
-        this.add.text(1260, 20, '🚪 마을로', { fontSize: '18px', fill: '#aaa', backgroundColor: '#333333', padding: { x: 8, y: 4 } }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => {
+        this.add.text(MATCH_UI.EXIT_BTN.x, MATCH_UI.EXIT_BTN.y, '🚪 마을로', { fontSize: '18px', fill: '#aaa', backgroundColor: '#333333', padding: { x: 8, y: 4 } }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => {
             this.showForfeitConfirm();
         });
 
         // 🎵 음소거(Mute) 토글 버튼 (상단 우측)
-        const soundBtn = this.add.text(1170, 20, this.sound.mute ? '🔇' : '🔊', { fontSize: '28px' })
+        const soundBtn = this.add.text(MATCH_UI.MUTE_BTN.x, MATCH_UI.MUTE_BTN.y, this.sound.mute ? '🔇' : '🔊', { fontSize: '28px' })
             .setOrigin(1, 0.5)
             .setInteractive({ useHandCursor: true })
             .setDepth(3000)
@@ -202,26 +195,26 @@ export class MatchScene extends Phaser.Scene {
             this.cameras.main.stopFollow();
             this.cameras.main.removeBounds(); // 백뷰에서는 바운드 제거
             this.cameras.main.setZoom(1);
-            this.cameras.main.centerOn(640, 360);
+            this.cameras.main.centerOn(CENTER_X, CENTER_Y);
 
             // 백뷰: 타자와 투수에게 줌인된 시점 (홈 플레이트가 화면 하단으로 내려옴)
-            this.moundPosition = { x: 640, y: 300 };
-            this.homePlatePosition = { x: 640, y: 650 };
+            this.moundPosition = { x: BACK_VIEW.MOUND.x, y: BACK_VIEW.MOUND.y };
+            this.homePlatePosition = { x: BACK_VIEW.HOME_PLATE.x, y: BACK_VIEW.HOME_PLATE.y };
             
             // 🌟 텍스처를 백스톱(뒤쪽) 시점으로 즉시 교체
-            this.stadiumBg.setTexture('stadium_backstop').setPosition(640, 360).setScale(1);
+            this.stadiumBg.setTexture('stadium_backstop').setPosition(CENTER_X, CENTER_Y).setScale(1);
 
             if (instant) {
-                this.pitcherSprite.setPosition(this.moundPosition.x, this.moundPosition.y).setAlpha(1).setScale(0.7);
-                this.batterSprite.setPosition(this.homePlatePosition.x - 120, this.homePlatePosition.y + 20).setAlpha(1).setScale(1.8);
-                this.strikeZone.setPosition(640, 520).setAlpha(1);
+                this.pitcherSprite.setPosition(this.moundPosition.x, this.moundPosition.y).setAlpha(1).setScale(BACK_VIEW.PITCHER_SCALE);
+                this.batterSprite.setPosition(this.homePlatePosition.x + BACK_VIEW.BATTER_OFFSET.x, this.homePlatePosition.y + BACK_VIEW.BATTER_OFFSET.y).setAlpha(1).setScale(BACK_VIEW.BATTER_SCALE);
+                this.strikeZone.setPosition(BACK_VIEW.STRIKE_ZONE.x, BACK_VIEW.STRIKE_ZONE.y).setAlpha(1);
                 if (this.fielders) this.fielders.forEach(f => f.setAlpha(0));
                 const activeUIs = this.uiElements.filter(ui => ui && ui.active);
                 if (activeUIs.length > 0) activeUIs.forEach(ui => ui.setAlpha(1));
             } else {
-                this.pitcherSprite.setPosition(this.moundPosition.x, this.moundPosition.y).setScale(0.7);
-                this.batterSprite.setPosition(this.homePlatePosition.x - 120, this.homePlatePosition.y + 20).setScale(1.8);
-                this.strikeZone.setPosition(640, 520);
+                this.pitcherSprite.setPosition(this.moundPosition.x, this.moundPosition.y).setScale(BACK_VIEW.PITCHER_SCALE);
+                this.batterSprite.setPosition(this.homePlatePosition.x + BACK_VIEW.BATTER_OFFSET.x, this.homePlatePosition.y + BACK_VIEW.BATTER_OFFSET.y).setScale(BACK_VIEW.BATTER_SCALE);
+                this.strikeZone.setPosition(BACK_VIEW.STRIKE_ZONE.x, BACK_VIEW.STRIKE_ZONE.y);
                 this.tweens.add({ targets: [this.pitcherSprite, this.batterSprite, this.strikeZone], alpha: 1, duration: duration });
                 if (this.fielders) this.tweens.add({ targets: this.fielders, alpha: 0, duration: duration });
                 const activeUIs = this.uiElements.filter(ui => ui && ui.active);
@@ -234,18 +227,18 @@ export class MatchScene extends Phaser.Scene {
             // 🌟 2. 다이내믹 카메라 (줌 & 트래킹) - 타구 발생 시 공을 부드럽게 쫓아감
             this.cameras.main.setBackgroundColor('#2e7d32'); // 카메라가 맵 밖을 비춰도 잔디처럼 보이게 처리
             // 🌟 1600x1600 메가 텍스처(중심 400,200)의 영역(-400, -600 ~ 1200, 1000) 밖으로 카메라가 나가지 않도록 제한!
-            this.cameras.main.setBounds(-400, -600, 2080, 1920);
+            this.cameras.main.setBounds(TOP_DOWN_VIEW.CAMERA_BOUNDS.x, TOP_DOWN_VIEW.CAMERA_BOUNDS.y, TOP_DOWN_VIEW.CAMERA_BOUNDS.width, TOP_DOWN_VIEW.CAMERA_BOUNDS.height);
             if (this.ball) {
                 this.cameras.main.startFollow(this.ball, true, 0.08, 0.08);
-                this.cameras.main.setZoom(1.2); // 줌인 수치를 1.6에서 1.2로 완화하여 가림 현상 방지
+                this.cameras.main.setZoom(TOP_DOWN_VIEW.CAMERA_ZOOM);
             }
 
             // 쿼터/탑다운 뷰: 경기장 전체가 보이는 시점 (거대한 투수/타자는 시야에서 숨김)
-            this.moundPosition = { x: 640, y: 280 }; // 새로 그려진 다이아몬드 정중앙 흙에 맞춤
-            this.homePlatePosition = { x: 640, y: 400 };
+            this.moundPosition = { x: TOP_DOWN_VIEW.MOUND.x, y: TOP_DOWN_VIEW.MOUND.y };
+            this.homePlatePosition = { x: TOP_DOWN_VIEW.HOME_PLATE.x, y: TOP_DOWN_VIEW.HOME_PLATE.y };
 
             // 🌟 1600x1600 메가 텍스처를 좌표계에 맞게 배치 (TextureCenter(800,800) -> World(400,200) 에 둬야 HomePlate가 400,400에 일치함)
-            this.stadiumBg.setTexture('stadium').setPosition(640, 200).setScale(1);
+            this.stadiumBg.setTexture('stadium').setPosition(TOP_DOWN_VIEW.STADIUM_POS.x, TOP_DOWN_VIEW.STADIUM_POS.y).setScale(1);
 
             if (instant) {
                 this.pitcherSprite.setAlpha(0);
@@ -305,15 +298,15 @@ export class MatchScene extends Phaser.Scene {
         const batterMissionText = `[${pos}] 당신은 ${this.myBattingOrder + 1}번 타자입니다! 당신의 타석을 기다리세요.`;
         
         // 시스템 메시지 배경 패널 (가독성 향상)
-        this.batterMsgBg = this.add.rectangle(640, 670, 1280, 80, 0x000000, 0.6).setDepth(49);
+        this.batterMsgBg = this.add.rectangle(MATCH_UI.MSG_BG.x, MATCH_UI.MSG_BG.y, MATCH_UI.MSG_BG.width, MATCH_UI.MSG_BG.height, 0x000000, 0.6).setDepth(49);
         this.uiElements.push(this.batterMsgBg);
 
-        this.batterMissionUI = this.add.text(640, 650, batterMissionText, { 
+        this.batterMissionUI = this.add.text(MATCH_UI.MISSION_TEXT.x, MATCH_UI.MISSION_TEXT.y, batterMissionText, { 
             fontSize: '18px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 2 
         }).setOrigin(0.5).setDepth(50);
         this.uiElements.push(this.batterMissionUI);
         
-        this.statusText = this.add.text(640, 690, '경기가 곧 시작됩니다...', { 
+        this.statusText = this.add.text(MATCH_UI.STATUS_TEXT.x, MATCH_UI.STATUS_TEXT.y, '경기가 곧 시작됩니다...', { 
             fontSize: '16px', fill: '#00ffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 2 
         }).setOrigin(0.5).setDepth(50);
 
@@ -328,7 +321,7 @@ export class MatchScene extends Phaser.Scene {
         this.input.on('pointerdown', (pointer) => {
             // UI 버튼 등을 누른 경우는 무시
             if (this.isGameOver) return; // 🔒 게임 종료 시 클릭 완벽 차단
-            if (pointer.y < 200) return;
+            if (pointer.y < SWING_CLICK_AREA.minY || pointer.y > SWING_CLICK_AREA.maxY) return; // 상단 UI 및 하단 UI 영역 제외
             if (!this.isPitching) return; // 공이 안 날아올 때 휘두르면 무시 (혹은 헛스윙 처리 가능)
 
             this.isPitching = false; // 공 판정 종료
@@ -427,8 +420,8 @@ export class MatchScene extends Phaser.Scene {
             this.pitchDuration = baseDuration / randomPitch.speedRatio;
 
             // 스트라이크 존 근처로 무작위 '최종 탄착 지점' 설정 (볼도 나오게 설정)
-            const finalDestX = Phaser.Math.Between(310, 490);
-            const finalDestY = Phaser.Math.Between(350, 550);
+            const finalDestX = Phaser.Math.Between(BACK_VIEW.STRIKE_ZONE.left - 50, BACK_VIEW.STRIKE_ZONE.right + 50);
+            const finalDestY = Phaser.Math.Between(BACK_VIEW.STRIKE_ZONE.top - 50, BACK_VIEW.STRIKE_ZONE.bottom + 50);
 
             // Ball.js에 전달할 baseTarget 역산
             const baseTargetX = finalDestX - randomPitch.breakX;
@@ -460,7 +453,7 @@ export class MatchScene extends Phaser.Scene {
                 // 공의 최종 도착 지점 확인
                 const finalX = this.ball.x;
                 const finalY = this.ball.y;
-                const isStrikeZone = finalX >= 350 && finalX <= 450 && finalY >= 375 && finalY <= 525;
+                const isStrikeZone = finalX >= BACK_VIEW.STRIKE_ZONE.left && finalX <= BACK_VIEW.STRIKE_ZONE.right && finalY >= BACK_VIEW.STRIKE_ZONE.top && finalY <= BACK_VIEW.STRIKE_ZONE.bottom;
 
                 // ⚾ 투구가 완료되었고 타자가 공을 맞추지 않았다면 미트(글러브) 연출
                 this.playCatchEffect(finalX, finalY);
@@ -500,15 +493,15 @@ export class MatchScene extends Phaser.Scene {
         else if (this.playerData.position === '중간 계투') pitchMissionText = '[중간 계투] 7회 초 무사 1,2루 위기! 실점 없이 이닝을 종료하세요.';
         else pitchMissionText = '[마무리 투수] 9회 초 1점차 리드! 세 타자를 잡아내고 승리를 지키세요.';
 
-        this.pitchMsgBg = this.add.rectangle(640, 670, 1280, 80, 0x000000, 0.6).setDepth(49);
+        this.pitchMsgBg = this.add.rectangle(MATCH_UI.MSG_BG.x, MATCH_UI.MSG_BG.y, MATCH_UI.MSG_BG.width, MATCH_UI.MSG_BG.height, 0x000000, 0.6).setDepth(49);
         this.uiElements.push(this.pitchMsgBg);
 
-        this.pitchMissionUI = this.add.text(640, 650, pitchMissionText, { 
+        this.pitchMissionUI = this.add.text(MATCH_UI.MISSION_TEXT.x, MATCH_UI.MISSION_TEXT.y, pitchMissionText, { 
             fontSize: '18px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 2 
         }).setOrigin(0.5).setDepth(50);
         this.uiElements.push(this.pitchMissionUI);
 
-        this.statusText = this.add.text(640, 690, '경기가 곧 시작됩니다...', { 
+        this.statusText = this.add.text(MATCH_UI.STATUS_TEXT.x, MATCH_UI.STATUS_TEXT.y, '경기가 곧 시작됩니다...', { 
             fontSize: '16px', fill: '#00ffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 2 
         }).setOrigin(0.5).setDepth(50);
 
@@ -520,7 +513,7 @@ export class MatchScene extends Phaser.Scene {
         this.coachWarned = false; // 코치 대화 등장 여부
 
         // 🌟 투수 전용 대시보드 UI 패널 생성 (위로 살짝 더 올려서 겹침 완전 해소)
-        this.pitcherDashboard = this.add.container(1000, 480).setDepth(30);
+        this.pitcherDashboard = this.add.container(MATCH_UI.PITCHER_DASHBOARD.x, MATCH_UI.PITCHER_DASHBOARD.y).setDepth(30);
         this.uiElements.push(this.pitcherDashboard);
 
         // 플랫한 레트로 다크 테마 배경
@@ -573,16 +566,18 @@ export class MatchScene extends Phaser.Scene {
         const playerPitchIds = this.playerData.pitches || PITCH_LIST.map(p => p.id);
         const availablePitches = PITCH_LIST.filter(p => playerPitchIds.includes(p.id));
 
-        const startX = 20; 
-        const startY = 250; // 중앙에서 살짝 아래로 시작하여 세로로 나열
+        const startX = PITCH_BUTTON_LAYOUT.startX; 
+        const startY = PITCH_BUTTON_LAYOUT.startY;
 
         availablePitches.forEach((pitch, index) => {
-            const x = startX;
-            const y = startY + (index * 45);
+            const col = index % PITCH_BUTTON_LAYOUT.columns;
+            const row = Math.floor(index / PITCH_BUTTON_LAYOUT.columns);
+            const x = startX + col * PITCH_BUTTON_LAYOUT.gapX;
+            const y = startY + (row * PITCH_BUTTON_LAYOUT.gapY);
 
             // 플랫한 버튼 배경 (좌측 정렬 앵커 적용)
-            const btnBg = this.add.rectangle(x, y, 100, 35, 0x333333, 0.9).setOrigin(0, 0.5).setStrokeStyle(2, 0x666666).setInteractive({ useHandCursor: true });
-            const btnText = this.add.text(x + 50, y, pitch.name, { fontSize: '15px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+            const btnBg = this.add.rectangle(x, y, PITCH_BUTTON_LAYOUT.buttonWidth, PITCH_BUTTON_LAYOUT.buttonHeight, 0x333333, 0.9).setOrigin(0, 0.5).setStrokeStyle(2, 0x666666).setInteractive({ useHandCursor: true });
+            const btnText = this.add.text(x + PITCH_BUTTON_LAYOUT.buttonWidth / 2, y, pitch.name, { fontSize: '15px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
             
             btnBg.on('pointerover', () => { btnBg.setFillStyle(0x555555); btnBg.setStrokeStyle(2, 0xffffff); });
             btnBg.on('pointerout', () => { btnBg.setFillStyle(0x333333); btnBg.setStrokeStyle(2, 0x666666); });
@@ -608,7 +603,7 @@ export class MatchScene extends Phaser.Scene {
 
             if (this.isGameOver) return;
             if (this.playerData.role === 'pitcher' && this.gameState.isBottom) return;
-            if (pointer.y < 300 || pointer.y > 600) return;
+            if (pointer.y < PITCH_CLICK_AREA.minY || pointer.y > PITCH_CLICK_AREA.maxY) return;
             if (this.isPitcherWaiting || !this.selectedPitch) return;
             if (this.currentView !== 'BACK') return; // 백뷰에서만 표시
 
@@ -696,7 +691,7 @@ export class MatchScene extends Phaser.Scene {
             // 스트라이크 존 근처인 300~600 영역만 투구 허용
             if (this.isGameOver) return; // 🔒 게임 종료 시 클릭 완벽 차단
             if (this.playerData.role === 'pitcher' && this.gameState.isBottom) return; // 🚨 투구 차례가 아닐 때 차단
-            if (pointer.y < 300 || pointer.y > 600) return;
+            if (pointer.y < PITCH_CLICK_AREA.minY || pointer.y > PITCH_CLICK_AREA.maxY) return;
             
             // ⚾ 타격 연출(이펙트)이 진행 중일 때는 다음 투구를 막음
             if (this.isPitcherWaiting) return;
@@ -747,8 +742,8 @@ export class MatchScene extends Phaser.Scene {
             const errorY = (Math.random() - 0.5) * 2 * maxError;
 
             // 마우스 클릭 지점이 최종 탄착 지점입니다. 오차를 더해줍니다.
-            const finalDestX = Phaser.Math.Clamp(pointer.x + errorX, 300, 500);
-            const finalDestY = Phaser.Math.Clamp(pointer.y + errorY, 320, 580);
+            const finalDestX = Phaser.Math.Clamp(pointer.x + errorX, BACK_VIEW.STRIKE_ZONE.left - 50, BACK_VIEW.STRIKE_ZONE.right + 50);
+            const finalDestY = Phaser.Math.Clamp(pointer.y + errorY, BACK_VIEW.STRIKE_ZONE.top - 50, BACK_VIEW.STRIKE_ZONE.bottom + 50);
 
             // Ball.js에 넘겨줄 base target 역산
             const baseTargetX = finalDestX - this.selectedPitch.breakX;
@@ -783,7 +778,7 @@ export class MatchScene extends Phaser.Scene {
                 const finalY = this.ball.y;
 
                 // 2. 스트라이크 존 판정 (최종 도착 지점 기준)
-                const isStrikeZone = finalX >= 350 && finalX <= 450 && finalY >= 375 && finalY <= 525;
+                const isStrikeZone = finalX >= BACK_VIEW.STRIKE_ZONE.left && finalX <= BACK_VIEW.STRIKE_ZONE.right && finalY >= BACK_VIEW.STRIKE_ZONE.top && finalY <= BACK_VIEW.STRIKE_ZONE.bottom;
                 const movement = this.playerData.stats.movement || 40;
 
                 // 3. 변화구(Movement) 스탯 및 구속에 따른 AI 타격 확률
@@ -949,8 +944,8 @@ export class MatchScene extends Phaser.Scene {
     }
 
     drawDefensivePosition() {
-        const startX = 1180;
-        const startY = 80; // 우측 상단 미니맵
+        const startX = MATCH_UI.MINIMAP.x;
+        const startY = MATCH_UI.MINIMAP.y; // 우측 상단 미니맵
         
         // 미니맵 컨테이너 생성
         this.miniMapContainer = this.add.container(startX, startY).setDepth(30);
@@ -1412,18 +1407,18 @@ export class MatchScene extends Phaser.Scene {
 
         // 결과 연출 UI 생성
         // .setInteractive()를 추가하여 결과창이 떴을 때 뒤쪽의 게임 화면(마운드 등)이 클릭되는 것을 방지합니다.
-        this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.85).setDepth(200).setInteractive();
+        this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.85).setDepth(200).setInteractive();
         
-        this.add.text(640, 120, `- ${month}월 ${day}일 경기 결과 -`, { fontSize: '24px', fill: '#a8d8ea', fontStyle: 'bold' }).setOrigin(0.5).setDepth(201);
+        this.add.text(CENTER_X, 120, `- ${month}월 ${day}일 경기 결과 -`, { fontSize: '24px', fill: '#a8d8ea', fontStyle: 'bold' }).setOrigin(0.5).setDepth(201);
         
-        this.add.text(640, 180, title, { fontSize: '50px', fill: color, fontStyle: 'bold', stroke: '#fff', strokeThickness: 2 }).setOrigin(0.5).setDepth(201);
+        this.add.text(CENTER_X, 180, title, { fontSize: '50px', fill: color, fontStyle: 'bold', stroke: '#fff', strokeThickness: 2 }).setOrigin(0.5).setDepth(201);
         
         const teamNameText = this.playerData.team ? this.playerData.team.split(' ')[0] : 'PLAYER';
         const opponentNameText = this.opponentTeam.split(' ')[0];
-        this.add.text(640, 260, `최종 스코어\n${teamNameText} ${this.gameState.scorePlayer} : ${this.gameState.scoreAI} ${opponentNameText}`, { fontSize: '32px', fill: '#fff', align: 'center' }).setOrigin(0.5).setDepth(201);
+        this.add.text(CENTER_X, 260, `최종 스코어\n${teamNameText} ${this.gameState.scorePlayer} : ${this.gameState.scoreAI} ${opponentNameText}`, { fontSize: '32px', fill: '#fff', align: 'center' }).setOrigin(0.5).setDepth(201);
         
         const rewardText = `획득 보상\n골드: +${goldReward} G\n경험치: +${expReward} EXP`;
-        this.add.text(640, 340, rewardText, { fontSize: '22px', fill: '#ffcc00', align: 'center', backgroundColor: '#333', padding: { x: 20, y: 8 } }).setOrigin(0.5).setDepth(201);
+        this.add.text(CENTER_X, 340, rewardText, { fontSize: '22px', fill: '#ffcc00', align: 'center', backgroundColor: '#333', padding: { x: 20, y: 8 } }).setOrigin(0.5).setDepth(201);
 
         // 📊 개인 기록 통계 표시
         let statsLine = '';
@@ -1434,16 +1429,16 @@ export class MatchScene extends Phaser.Scene {
         } else {
             statsLine = `📊 개인 기록\n투구수: ${ps.pitchCount}구 | 삼진: ${ps.strikeOuts}\n피안타: ${ps.hitsAllowed} | 실점: ${ps.runsAllowed} | 볼넷: ${ps.walks}`;
         }
-        this.add.text(640, 420, statsLine, { fontSize: '18px', fill: '#a8d8ea', align: 'center', backgroundColor: '#1a1a2e', padding: { x: 15, y: 8 } }).setOrigin(0.5).setDepth(201);
+        this.add.text(CENTER_X, 420, statsLine, { fontSize: '18px', fill: '#a8d8ea', align: 'center', backgroundColor: '#1a1a2e', padding: { x: 15, y: 8 } }).setOrigin(0.5).setDepth(201);
 
-        const returnBtn = this.add.text(490, 510, '[ 마을로 돌아가기 ]', { fontSize: '22px', fill: '#00ffff', backgroundColor: '#111', padding: { x: 15, y: 8 } })
+        const returnBtn = this.add.text(CENTER_X - 150, 510, '[ 마을로 돌아가기 ]', { fontSize: '22px', fill: '#00ffff', backgroundColor: '#111', padding: { x: 15, y: 8 } })
             .setOrigin(0.5).setDepth(201).setInteractive({ useHandCursor: true });
             
         returnBtn.on('pointerover', () => returnBtn.setStyle({ fill: '#ffffff', backgroundColor: '#555' }))
            .on('pointerout', () => returnBtn.setStyle({ fill: '#00ffff', backgroundColor: '#111' }))
            .on('pointerdown', () => this.scene.start('TownScene'));
            
-        const rankBtn = this.add.text(790, 510, '[ 리그 순위 확인 ]', { fontSize: '22px', fill: '#fca311', backgroundColor: '#111', padding: { x: 15, y: 8 } })
+        const rankBtn = this.add.text(CENTER_X + 150, 510, '[ 리그 순위 확인 ]', { fontSize: '22px', fill: '#fca311', backgroundColor: '#111', padding: { x: 15, y: 8 } })
             .setOrigin(0.5).setDepth(201).setInteractive({ useHandCursor: true });
             
         rankBtn.on('pointerover', () => rankBtn.setStyle({ fill: '#ffffff', backgroundColor: '#555' }))
@@ -1455,9 +1450,9 @@ export class MatchScene extends Phaser.Scene {
         if (this.isGameOver) return;
 
         // 화면 클릭(투구/타격) 차단용 투명 배경
-        const blocker = this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.8).setDepth(3000).setInteractive();
+        const blocker = this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.8).setDepth(3000).setInteractive();
 
-        const confirmContainer = this.add.container(640, 360).setDepth(3001);
+        const confirmContainer = this.add.container(CENTER_X, CENTER_Y).setDepth(3001);
         const bg = this.add.rectangle(0, 0, 450, 200, 0x222222).setStrokeStyle(4, 0xff0000);
         
         const text = this.add.text(0, -30, '경기를 포기하고 마을로 돌아가시겠습니까?\n(패배로 기록되며 보상을 받을 수 없습니다.)', { 
@@ -1508,27 +1503,27 @@ export class MatchScene extends Phaser.Scene {
         this.registry.set('playerData', this.playerData);
 
         // 결과 연출 UI 생성
-        this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.85).setDepth(3000).setInteractive();
+        this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.85).setDepth(3000).setInteractive();
         
-        this.add.text(640, 120, `- ${month}월 ${day}일 경기 결과 -`, { fontSize: '24px', fill: '#a8d8ea', fontStyle: 'bold' }).setOrigin(0.5).setDepth(3001);
+        this.add.text(CENTER_X, 120, `- ${month}월 ${day}일 경기 결과 -`, { fontSize: '24px', fill: '#a8d8ea', fontStyle: 'bold' }).setOrigin(0.5).setDepth(3001);
         
-        this.add.text(640, 180, '경기 포기 (FORFEIT)', { fontSize: '50px', fill: '#ff0000', fontStyle: 'bold', stroke: '#fff', strokeThickness: 2 }).setOrigin(0.5).setDepth(3001);
+        this.add.text(CENTER_X, 180, '경기 포기 (FORFEIT)', { fontSize: '50px', fill: '#ff0000', fontStyle: 'bold', stroke: '#fff', strokeThickness: 2 }).setOrigin(0.5).setDepth(3001);
         
         const teamNameText = this.playerData.team ? this.playerData.team.split(' ')[0] : 'PLAYER';
         const opponentNameText = this.opponentTeam.split(' ')[0];
-        this.add.text(640, 260, `최종 스코어\n${teamNameText} ${this.gameState.scorePlayer} : ${this.gameState.scoreAI} ${opponentNameText}`, { fontSize: '32px', fill: '#fff', align: 'center' }).setOrigin(0.5).setDepth(3001);
+        this.add.text(CENTER_X, 260, `최종 스코어\n${teamNameText} ${this.gameState.scorePlayer} : ${this.gameState.scoreAI} ${opponentNameText}`, { fontSize: '32px', fill: '#fff', align: 'center' }).setOrigin(0.5).setDepth(3001);
         
         const rewardText = `획득 보상\n골드: +0 G\n경험치: +0 EXP`;
-        this.add.text(640, 360, rewardText, { fontSize: '26px', fill: '#777777', align: 'center', backgroundColor: '#222', padding: { x: 20, y: 10 } }).setOrigin(0.5).setDepth(3001);
+        this.add.text(CENTER_X, 360, rewardText, { fontSize: '26px', fill: '#777777', align: 'center', backgroundColor: '#222', padding: { x: 20, y: 10 } }).setOrigin(0.5).setDepth(3001);
 
-        const returnBtn = this.add.text(490, 480, '[ 마을로 돌아가기 ]', { fontSize: '24px', fill: '#00ffff', backgroundColor: '#111', padding: { x: 15, y: 10 } })
+        const returnBtn = this.add.text(CENTER_X - 150, 480, '[ 마을로 돌아가기 ]', { fontSize: '24px', fill: '#00ffff', backgroundColor: '#111', padding: { x: 15, y: 10 } })
             .setOrigin(0.5).setDepth(3001).setInteractive({ useHandCursor: true });
             
         returnBtn.on('pointerover', () => returnBtn.setStyle({ fill: '#ffffff', backgroundColor: '#555' }))
            .on('pointerout', () => returnBtn.setStyle({ fill: '#00ffff', backgroundColor: '#111' }))
            .on('pointerdown', () => this.scene.start('TownScene'));
 
-        const rankBtn = this.add.text(790, 480, '[ 리그 순위 확인 ]', { fontSize: '24px', fill: '#fca311', backgroundColor: '#111', padding: { x: 15, y: 10 } })
+        const rankBtn = this.add.text(CENTER_X + 150, 480, '[ 리그 순위 확인 ]', { fontSize: '24px', fill: '#fca311', backgroundColor: '#111', padding: { x: 15, y: 10 } })
             .setOrigin(0.5).setDepth(3001).setInteractive({ useHandCursor: true });
             
         rankBtn.on('pointerover', () => rankBtn.setStyle({ fill: '#ffffff', backgroundColor: '#555' }))
@@ -1583,7 +1578,7 @@ export class MatchScene extends Phaser.Scene {
             return;
         }
 
-        this.standingsContainer = this.add.container(640, 360).setDepth(5000);
+        this.standingsContainer = this.add.container(CENTER_X, CENTER_Y).setDepth(5000);
         const bg = this.add.rectangle(0, 0, 600, 450, 0x1a1a2e, 0.98).setStrokeStyle(4, 0xfca311);
         const title = this.add.text(0, -180, '🏆 KBO 리그 순위 🏆', { fontSize: '28px', fill: '#fca311', fontStyle: 'bold' }).setOrigin(0.5);
         
@@ -2295,8 +2290,8 @@ export class MatchScene extends Phaser.Scene {
 
     showCoachDialog() {
         this.isPitcherWaiting = true; // 투구 막기
-        const blocker = this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.8).setDepth(4000).setInteractive();
-        const container = this.add.container(640, 360).setDepth(4001);
+        const blocker = this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.8).setDepth(4000).setInteractive();
+        const container = this.add.container(CENTER_X, CENTER_Y).setDepth(4001);
         
         const bg = this.add.rectangle(0, 0, 500, 250, 0x222222).setStrokeStyle(4, 0xffaa00);
         
