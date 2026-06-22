@@ -63,11 +63,11 @@ export class MatchScene extends Phaser.Scene {
         this.isGameOver = false;
 
         const roleText = this.playerData.position || (this.playerData.role === 'batter' ? '타자' : '투수');
-        this.roleTextObj = this.add.text(400, 20, `[ ${this.playerData.name} - ${roleText} ]`, { fontSize: '18px', fill: '#ccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 15, y: 5 } }).setOrigin(0.5);
+        this.roleTextObj = this.add.text(780, 520, `[ ${this.playerData.name} - ${roleText} ]`, { fontSize: '14px', fill: '#ccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 10, y: 5 } }).setOrigin(1, 0.5);
         this.uiElements.push(this.roleTextObj);
 
         // 🤖 AI 스탯 텍스트 UI 생성
-        this.aiStatText = this.add.text(400, 125, '', { fontSize: '14px', fill: '#ffcccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 10, y: 4 } }).setOrigin(0.5).setDepth(20);
+        this.aiStatText = this.add.text(780, 550, '', { fontSize: '14px', fill: '#ffcccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 10, y: 4 } }).setOrigin(1, 0.5).setDepth(20);
         this.uiElements.push(this.aiStatText);
         this.updateAIStatUI();
 
@@ -176,8 +176,9 @@ export class MatchScene extends Phaser.Scene {
                 }
             }
 
-            // 카메라 트래킹 해제 및 위치 초기화
+            // 카메라 트래킹 해제 및 바운드 초기화
             this.cameras.main.stopFollow();
+            this.cameras.main.removeBounds(); // 백뷰에서는 바운드 제거
             this.cameras.main.setZoom(1);
             this.cameras.main.centerOn(400, 300);
 
@@ -210,7 +211,8 @@ export class MatchScene extends Phaser.Scene {
 
             // 🌟 2. 다이내믹 카메라 (줌 & 트래킹) - 타구 발생 시 공을 부드럽게 쫓아감
             this.cameras.main.setBackgroundColor('#2e7d32'); // 카메라가 맵 밖을 비춰도 잔디처럼 보이게 처리
-            // this.cameras.main.setBounds(0, 0, 800, 600); // 🚫 화면 잘림(부자연스러운 카메라 고정) 현상을 막기 위해 바운드 제한 해제
+            // 🌟 1600x1600 메가 텍스처(중심 400,200)의 영역(-400, -600 ~ 1200, 1000) 밖으로 카메라가 나가지 않도록 제한!
+            this.cameras.main.setBounds(-400, -600, 1600, 1600);
             if (this.ball) {
                 this.cameras.main.startFollow(this.ball, true, 0.08, 0.08);
                 this.cameras.main.setZoom(1.2); // 줌인 수치를 1.6에서 1.2로 완화하여 가림 현상 방지
@@ -280,10 +282,10 @@ export class MatchScene extends Phaser.Scene {
         const pos = this.playerData.position || '타자';
         const batterMissionText = `[${pos}] 당신은 ${this.myBattingOrder + 1}번 타자입니다! 당신의 타석을 기다리세요.`;
         
-        this.batterMissionUI = this.add.text(400, 140, batterMissionText, { fill: '#fff', backgroundColor: '#00000099', padding: { x: 10, y: 5 } }).setOrigin(0.5);
+        this.batterMissionUI = this.add.text(400, 120, batterMissionText, { fill: '#fff', backgroundColor: '#00000099', padding: { x: 10, y: 5 } }).setOrigin(0.5);
         this.uiElements.push(this.batterMissionUI);
         
-        this.statusText = this.add.text(400, 175, '경기가 곧 시작됩니다...', { fontSize: '18px', fill: '#ffaa00', backgroundColor: '#00000099', padding: { x: 10, y: 5 } }).setOrigin(0.5);
+        this.statusText = this.add.text(400, 150, '경기가 곧 시작됩니다...', { fontSize: '18px', fill: '#ffaa00', backgroundColor: '#00000099', padding: { x: 10, y: 5 } }).setOrigin(0.5);
 
         this.isPitching = false;
         this.pitchStartTime = 0;
@@ -458,10 +460,10 @@ export class MatchScene extends Phaser.Scene {
         else if (this.playerData.position === '중간 계투') pitchMissionText = '[중간 계투] 7회 초 무사 1,2루 위기! 실점 없이 이닝을 종료하세요.';
         else pitchMissionText = '[마무리 투수] 9회 초 1점차 리드! 세 타자를 잡아내고 승리를 지키세요.';
 
-        this.pitchMissionUI = this.add.text(400, 140, pitchMissionText, { fill: '#fff', backgroundColor: '#00000099', padding: { x: 10, y: 5 } }).setOrigin(0.5);
+        this.pitchMissionUI = this.add.text(400, 120, pitchMissionText, { fill: '#fff', backgroundColor: '#00000099', padding: { x: 10, y: 5 } }).setOrigin(0.5);
         this.uiElements.push(this.pitchMissionUI);
 
-        this.statusText = this.add.text(400, 175, '경기가 곧 시작됩니다...', { fontSize: '18px', fill: '#ffaa00', backgroundColor: '#00000099', padding: { x: 10, y: 5 } }).setOrigin(0.5);
+        this.statusText = this.add.text(400, 150, '경기가 곧 시작됩니다...', { fontSize: '18px', fill: '#ffaa00', backgroundColor: '#00000099', padding: { x: 10, y: 5 } }).setOrigin(0.5);
 
         this.selectedPitch = null;
         this.isPitcherWaiting = true; // 타격 연출 중 투구 방지 플래그
@@ -530,7 +532,7 @@ export class MatchScene extends Phaser.Scene {
         const numCols = Math.min(availablePitches.length, cols);
         const totalWidth = (numCols - 1) * spacingX;
         const startX = 400 - (totalWidth / 2);
-        const startY = 190; // 미션 텍스트 아래, 결과 텍스트 위에 적절히 배치
+        const startY = 520; // 구종 메뉴를 하단 중앙으로 배치
 
         availablePitches.forEach((pitch, index) => {
             const col = index % cols;
@@ -807,66 +809,58 @@ export class MatchScene extends Phaser.Scene {
     }
 
     createScoreboard() {
-        // 전광판 배경을 조금 위로 올리고 타이트하게 조정
-        const bg = this.add.rectangle(400, 80, 520, 75, 0x111111, 0.9).setStrokeStyle(2, 0x444444);
+        // 🌟 컴투스/MLB 스타일: 좌측 상단 콤팩트 스코어보드
+        // 배경 바(Bar)
+        const bg = this.add.rectangle(10, 10, 480, 50, 0x000000, 0.7).setOrigin(0, 0).setStrokeStyle(1, 0x444444);
         this.uiElements.push(bg);
         
-        // 베이스 UI 생성 (다이아몬드 형태 - 1루: 우, 2루: 상, 3루: 좌)
-        const baseX = 190;
-        const baseY = 80;
-        this.baseUI = [
-            this.add.polygon(baseX + 25, baseY, [0,-12, 12,0, 0,12, -12,0], 0x444444).setStrokeStyle(2, 0xffffff), // 1루
-            this.add.polygon(baseX, baseY - 25, [0,-12, 12,0, 0,12, -12,0], 0x444444).setStrokeStyle(2, 0xffffff), // 2루
-            this.add.polygon(baseX - 25, baseY, [0,-12, 12,0, 0,12, -12,0], 0x444444).setStrokeStyle(2, 0xffffff)  // 3루
-        ];
-        this.uiElements.push(...this.baseUI);
-        
-        // 이닝 텍스트
-        this.inningText = this.add.text(400, 55, '', { fontSize: '18px', fill: '#ffcc00', fontStyle: 'bold' }).setOrigin(0.5);
+        // 1. 이닝 텍스트
+        this.inningText = this.add.text(30, 35, '', { fontSize: '16px', fill: '#ffcc00', fontStyle: 'bold' }).setOrigin(0, 0.5);
         this.uiElements.push(this.inningText);
         
-        // 📅 경기 날짜 텍스트 (전광판 우측 상단)
-        const matchIndex = this.playerData.currentMatchIndex || 0;
-        const startDate = new Date(2024, 2, 23);
-        startDate.setDate(startDate.getDate() + matchIndex);
-        const month = startDate.getMonth() + 1;
-        const day = startDate.getDate();
-        const dateText = this.add.text(600, 55, `${month}월 ${day}일`, { fontSize: '16px', fill: '#a8d8ea', fontStyle: 'bold' }).setOrigin(0.5);
-        this.uiElements.push(dateText);
-
-        // 점수 텍스트
-        this.scoreText = this.add.text(400, 80, '', { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        // 2. 점수 텍스트
+        this.scoreText = this.add.text(120, 35, '', { fontSize: '20px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0, 0.5);
         this.uiElements.push(this.scoreText);
         
-        // 볼카운트 (B S O) LED 전광판 (전광판 하단 중앙부)
-        const bY = 105;
-        const bLabel = this.add.text(280, bY, 'B', { fontSize: '16px', fill: '#00ff00', fontStyle: 'bold' }).setOrigin(0.5);
+        // 3. 볼카운트 (B S O) - 얇은 선이나 작은 점으로 세련되게
+        const countStartX = 300;
+        const bY = 20; const sY = 35; const oY = 50;
+        const bLabel = this.add.text(countStartX, bY, 'B', { fontSize: '12px', fill: '#00ff00', fontStyle: 'bold' }).setOrigin(0.5);
+        const sLabel = this.add.text(countStartX, sY, 'S', { fontSize: '12px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
+        const oLabel = this.add.text(countStartX, oY, 'O', { fontSize: '12px', fill: '#ff0000', fontStyle: 'bold' }).setOrigin(0.5);
+        
         this.ballLights = [
-            this.add.circle(300, bY, 6, 0x333333).setStrokeStyle(2, 0x555555),
-            this.add.circle(320, bY, 6, 0x333333).setStrokeStyle(2, 0x555555),
-            this.add.circle(340, bY, 6, 0x333333).setStrokeStyle(2, 0x555555)
+            this.add.circle(countStartX + 15, bY, 4, 0x333333).setStrokeStyle(1, 0x555555),
+            this.add.circle(countStartX + 25, bY, 4, 0x333333).setStrokeStyle(1, 0x555555),
+            this.add.circle(countStartX + 35, bY, 4, 0x333333).setStrokeStyle(1, 0x555555)
         ];
-        
-        const sLabel = this.add.text(380, bY, 'S', { fontSize: '16px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
         this.strikeLights = [
-            this.add.circle(400, bY, 6, 0x333333).setStrokeStyle(2, 0x555555),
-            this.add.circle(420, bY, 6, 0x333333).setStrokeStyle(2, 0x555555)
+            this.add.circle(countStartX + 15, sY, 4, 0x333333).setStrokeStyle(1, 0x555555),
+            this.add.circle(countStartX + 25, sY, 4, 0x333333).setStrokeStyle(1, 0x555555)
         ];
-        
-        const oLabel = this.add.text(460, bY, 'O', { fontSize: '16px', fill: '#ff0000', fontStyle: 'bold' }).setOrigin(0.5);
         this.outLights = [
-            this.add.circle(480, bY, 6, 0x333333).setStrokeStyle(2, 0x555555),
-            this.add.circle(500, bY, 6, 0x333333).setStrokeStyle(2, 0x555555)
+            this.add.circle(countStartX + 15, oY, 4, 0x333333).setStrokeStyle(1, 0x555555),
+            this.add.circle(countStartX + 25, oY, 4, 0x333333).setStrokeStyle(1, 0x555555)
         ];
         this.uiElements.push(bLabel, sLabel, oLabel, ...this.ballLights, ...this.strikeLights, ...this.outLights);
         
-        // 도루 시도 버튼 (전광판 우측 안쪽으로 쏙 들어오게 배치)
-        this.stealBtn = this.add.text(600, 80, '🏃 도루 시도', { fontSize: '16px', fill: '#000', backgroundColor: '#00ff00', padding: { x: 8, y: 4 }, fontStyle: 'bold' })
-            .setOrigin(0.5)
+        // 4. 베이스 다이아몬드 (우측 끝)
+        const baseX = 440;
+        const baseY = 35;
+        this.baseUI = [
+            this.add.polygon(baseX + 15, baseY, [0,-7, 7,0, 0,7, -7,0], 0x444444).setStrokeStyle(1, 0xffffff), // 1루
+            this.add.polygon(baseX, baseY - 15, [0,-7, 7,0, 0,7, -7,0], 0x444444).setStrokeStyle(1, 0xffffff), // 2루
+            this.add.polygon(baseX - 15, baseY, [0,-7, 7,0, 0,7, -7,0], 0x444444).setStrokeStyle(1, 0xffffff)  // 3루
+        ];
+        this.uiElements.push(...this.baseUI);
+        
+        // 도루 시도 버튼 (스코어보드 바로 밑)
+        this.stealBtn = this.add.text(490, 35, '🏃 도루 시도', { fontSize: '14px', fill: '#000', backgroundColor: '#00ff00', padding: { x: 6, y: 4 }, fontStyle: 'bold' })
+            .setOrigin(0, 0.5)
             .setInteractive({ useHandCursor: true })
             .setVisible(false)
             .on('pointerdown', (pointer, localX, localY, event) => {
-                event.stopPropagation(); // 스윙으로 잘못 인식되지 않도록 이벤트 전파 차단
+                event.stopPropagation();
                 this.attemptSteal();
             });
         this.uiElements.push(this.stealBtn);
@@ -878,11 +872,11 @@ export class MatchScene extends Phaser.Scene {
     }
 
     drawDefensivePosition() {
-        const startX = 710;
-        const startY = 480; // 미니맵을 우측 하단으로 이동
+        const startX = 720;
+        const startY = 80; // 미니맵을 우측 상단으로 이동 (스코어보드 대칭)
         
         // 미니맵 타이틀
-        const title = this.add.text(startX, startY - 45, '- 수비 위치 -', { fontSize: '14px', fill: '#a8d8ea', fontStyle: 'bold' }).setOrigin(0.5);
+        const title = this.add.text(startX, startY - 45, '- 수비 위치 -', { fontSize: '12px', fill: '#a8d8ea', fontStyle: 'bold' }).setOrigin(0.5);
         
         // ⚾ 다이아몬드 (내야 잔디)
         const diamond = this.add.polygon(startX, startY, [0,-25, 25,0, 0,25, -25,0], 0x386641).setStrokeStyle(2, 0xdddddd);
