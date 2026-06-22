@@ -12,34 +12,78 @@ export class TownScene extends Phaser.Scene {
         this.hospitalContainer = null;
         this.trainingContainer = null;
 
-        // 🌆 쿼터뷰(탑다운) 도시 잔디밭 배경
-        this.add.rectangle(400, 300, 800, 600, 0x386641).setDepth(-10);
+        // 🌿 화사하고 밝은 연두색 잔디밭 (밀도감의 베이스)
+        this.add.rectangle(400, 300, 800, 600, 0xc5e1a5).setDepth(-10);
         
-        // 🛣️ 십자형 도로
-        this.add.rectangle(400, 300, 800, 120, 0x555555).setDepth(-9); // 가로 도로
-        this.add.rectangle(400, 300, 120, 600, 0x555555).setDepth(-9); // 세로 도로
-
-        // 교차로 횡단보도
-        this.add.rectangle(400, 300, 100, 100, 0x444444).setDepth(-8);
-        for (let i = 0; i < 4; i++) {
-            this.add.rectangle(360 + i * 25, 240, 15, 30, 0xdddddd).setDepth(-7); // 상
-            this.add.rectangle(360 + i * 25, 360, 15, 30, 0xdddddd).setDepth(-7); // 하
-            this.add.rectangle(240, 360 - i * 25, 30, 15, 0xdddddd).setDepth(-7); // 좌
-            this.add.rectangle(360, 360 - i * 25, 30, 15, 0xdddddd).setDepth(-7); // 우
-        }
-
-        // 도로 중앙선
-        for (let i = 0; i < 8; i++) {
-            if (i !== 3 && i !== 4) { // 교차로 비우기
-                this.add.rectangle(50 + i * 100, 300, 40, 4, 0xffcc00).setDepth(-8); // 가로
-                this.add.rectangle(400, 50 + i * 100, 4, 40, 0xffcc00).setDepth(-8); // 세로
+        // 🟨 노란색/갈색 격자무늬(Tile) 타일로 촘촘하게 마을 산책로(Path) 깔기
+        // 쿼터뷰 느낌을 주기 위해 다이아몬드(사선) 패턴 생성
+        for (let py = -200; py < 800; py += 80) {
+            for (let px = -200; px < 1000; px += 80) {
+                // 길을 그릴지 말지 결정 (랜덤 패턴이지만 화면을 어느정도 채우게)
+                if (Math.random() > 0.2) {
+                    const path = this.add.rectangle(px, py, 50, 50, 0xffeb3b).setDepth(-9).setStrokeStyle(2, 0xfbc02d);
+                    path.setRotation(Math.PI / 4); // 마름모꼴로 돌려 쿼터뷰 느낌
+                    
+                    // 길 위에 무늬
+                    this.add.rectangle(px, py, 30, 30, 0xffd54f).setDepth(-8).setRotation(Math.PI / 4);
+                }
             }
         }
 
-        // ☁️ 둥둥 떠다니는 구름 추가
+        // 🌳🌲🌻 풍성한 장식용 자연 오브젝트 대량 배치 (빈 공간 채우기)
+        const decos = ['🌳', '🌲', '🌴', '🌻', '🌻', '💈', '💡'];
+        for (let i = 0; i < 80; i++) {
+            const dx = Phaser.Math.Between(10, 790);
+            const dy = Phaser.Math.Between(10, 590);
+            
+            // 메인 건물 위치들 근처는 살짝 피해서 배치
+            if ((dx > 150 && dx < 250) || (dx > 550 && dx < 650)) continue; 
+            if (dx > 300 && dx < 500 && dy > 200 && dy < 400) continue; // 중앙 경기장 피하기
+            
+            const deco = Phaser.Utils.Array.GetRandom(decos);
+            const size = (deco === '🌻') ? '20px' : '40px';
+            this.add.text(dx, dy, deco, { fontSize: size }).setOrigin(0.5, 1).setDepth(dy - 500);
+        }
+
+        // 🏘️ 배경용 귀여운 쿼터뷰 집들 (빨강/파랑 지붕 등 다채로운 색상)
+        const roofColors = [0xe53935, 0x1e88e5, 0x8e24aa, 0xfb8c00];
+        for (let i = 0; i < 20; i++) {
+            const hx = Phaser.Math.Between(40, 760);
+            const hy = Phaser.Math.Between(40, 560);
+            
+            // 겹치지 않게 메인 구역 피하기
+            if (hx > 100 && hx < 700 && hy > 100 && hy < 500) continue;
+
+            const bContainer = this.add.container(hx, hy).setDepth(hy - 450);
+            
+            // 건물 본체 (하얀색 벽)
+            bContainer.add(this.add.rectangle(0, 0, 60, 50, 0xffffff).setStrokeStyle(2, 0x999999));
+            // 둥글거나 뾰족한 지붕 (반원)
+            const rColor = Phaser.Utils.Array.GetRandom(roofColors);
+            bContainer.add(this.add.ellipse(0, -25, 70, 40, rColor).setStrokeStyle(2, 0x333333));
+            bContainer.add(this.add.rectangle(0, -25, 60, 20, rColor));
+            
+            // 귀여운 창문과 문
+            bContainer.add(this.add.rectangle(-15, 5, 15, 15, 0x81d4fa));
+            bContainer.add(this.add.rectangle(15, 10, 15, 25, 0x8d6e63));
+            
+            // 야구 마을답게 지붕에 야구모자나 공 마크 추가
+            const decoIcon = Math.random() > 0.5 ? '🧢' : '⚾';
+            bContainer.add(this.add.text(0, -35, decoIcon, { fontSize: '20px' }).setOrigin(0.5));
+        }
+
+        // 'WELCOME' 간판 장식
+        for (let i = 0; i < 4; i++) {
+            const wx = Phaser.Math.Between(100, 700);
+            const wy = Phaser.Math.Between(50, 550);
+            const wText = this.add.text(wx, wy, 'WELCOME', { fontSize: '18px', fill: '#ffffff', fontStyle: 'bold', stroke: '#1565c0', strokeThickness: 5, backgroundColor: '#42a5f5' }).setOrigin(0.5).setDepth(wy - 450);
+            wText.setRotation(-0.1);
+        }
+
+        // ☁️ 둥둥 떠다니는 구름 추가 (화사하고 밝은 톤)
         for (let i = 0; i < 5; i++) {
             const cloud = this.add.text(Phaser.Math.Between(-100, 800), Phaser.Math.Between(10, 500), '☁️', { 
-                fontSize: `${Phaser.Math.Between(40, 80)}px`, alpha: Phaser.Math.FloatBetween(0.3, 0.7) 
+                fontSize: `${Phaser.Math.Between(40, 80)}px`, alpha: Phaser.Math.FloatBetween(0.5, 0.9) 
             }).setDepth(500); // 제일 위 (하늘)
             
             this.tweens.add({
@@ -106,7 +150,7 @@ export class TownScene extends Phaser.Scene {
         this.dialogSystem = new DialogSystem(this);
 
         // 🏋️ 훈련소 (좌측 하단)
-        this.createBuilding(180, 450, 180, 160, 0x4a4e69, '🏋️', '훈련소', () => {
+        this.createCuteVillageBuilding(200, 420, 150, 130, 'gym', '🏋️', '훈련소', () => {
             if (this.dialogSystem.isShowing) return; // 이미 대화 중이면 무시
             
             this.dialogSystem.show([
@@ -120,7 +164,7 @@ export class TownScene extends Phaser.Scene {
         });
 
         // 🏥 구단 병원 (좌측 상단)
-        this.createBuilding(180, 130, 180, 160, 0xffb3c6, '🏥', '구단 병원', () => {
+        this.createCuteVillageBuilding(200, 150, 150, 130, 'hospital', '🏥', '구단 병원', () => {
             if (this.dialogSystem.isShowing) return;
             
             const pd = this.registry.get('playerData');
@@ -143,7 +187,7 @@ export class TownScene extends Phaser.Scene {
         });
 
         // 🛒 스포츠 샵 (우측 상단)
-        this.createBuilding(620, 130, 180, 160, 0x9a8c98, '🛒', '스포츠 샵', () => {
+        this.createCuteVillageBuilding(600, 150, 150, 130, 'shop', '🛒', '스포츠 샵', () => {
             if (this.dialogSystem.isShowing) return;
             
             // 대화가 끝난 후 openShopUI() 함수를 실행하도록 콜백 전달 (핵심! 🌟)
@@ -155,7 +199,7 @@ export class TownScene extends Phaser.Scene {
             });
         });
 
-        // 🏟️ 경기장 (우측 하단)
+        // 🏟️ 미니 경기장 (중앙 랜드마크)
         const totalMatches = playerData.schedule ? playerData.schedule.length : 144;
         const opponent = playerData.schedule ? playerData.schedule[matchIndex] : '상대팀';
 
@@ -167,7 +211,7 @@ export class TownScene extends Phaser.Scene {
 
         const matchDesc = `정규시즌 [${Math.min(matchIndex + 1, totalMatches)}/${totalMatches}]\n${month}월 ${day}일 vs ${opponent}`;
 
-        this.createBuilding(620, 450, 180, 160, 0xe94560, '🏟️', matchDesc, () => {
+        this.createCuteVillageBuilding(400, 320, 220, 180, 'stadium', '🏟️', matchDesc, () => {
             if (matchIndex >= totalMatches) {
                 alert('이번 시즌의 모든 정규 경기를 마쳤습니다!');
                 return;
@@ -176,48 +220,85 @@ export class TownScene extends Phaser.Scene {
         });
     }
 
-    // 🏢 재사용 가능한 쿼터뷰 스타일 건물 생성 헬퍼 함수
-    createBuilding(x, y, width, height, color, titleText, subtitleText, onClick) {
-        // Y 좌표를 Depth로 사용하여 아래에 있는 건물이 위에 있는 건물을 덮도록 함
+    // 🏢 귀여운 쿼터뷰(아이소메트릭) 스타일의 핵심 상호작용 건물 생성 헬퍼
+    createCuteVillageBuilding(x, y, width, height, type, icon, subtitleText, onClick) {
         const container = this.add.container(x, y).setDepth(y);
-        
-        // 건물 그림자
-        const shadow = this.add.ellipse(0, height/2, width * 1.2, height * 0.4, 0x000000, 0.4);
+        const elements = [];
 
-        const bg = this.add.rectangle(0, 0, width, height, color).setStrokeStyle(3, 0x111111);
-        const roof = this.add.rectangle(0, -height/2 - 10, width + 20, 20, 0x111111);
-        const door = this.add.rectangle(0, height/2 - 20, 40, 40, 0x222222);
+        // 건물 바닥 그림자
+        elements.push(this.add.ellipse(0, height/2, width * 1.1, height * 0.4, 0x000000, 0.4));
 
-        // 불이 켜지고 꺼지는 창문
-        const win1 = this.add.rectangle(-30, -20, 30, 30, 0xffd700).setAlpha(0.3);
-        const win2 = this.add.rectangle(30, -20, 30, 30, 0xffd700).setAlpha(0.3);
+        if (type === 'stadium') {
+            // 중앙 랜드마크: 미니 야구장
+            elements.push(this.add.ellipse(0, 0, width, height, 0xeeeeee).setStrokeStyle(3, 0xcccccc)); // 외벽/관중석 테두리
+            elements.push(this.add.ellipse(0, -5, width * 0.9, height * 0.8, 0x81c784)); // 잔디 구장
+            // 내야 흙
+            elements.push(this.add.ellipse(0, 10, width * 0.5, height * 0.4, 0xd7ccc8));
+            // 베이스들
+            elements.push(this.add.rectangle(0, 25, 8, 8, 0xffffff).setRotation(Math.PI/4)); // 홈
+            elements.push(this.add.rectangle(-25, 0, 8, 8, 0xffffff).setRotation(Math.PI/4)); // 3루
+            elements.push(this.add.rectangle(25, 0, 8, 8, 0xffffff).setRotation(Math.PI/4)); // 1루
+            elements.push(this.add.rectangle(0, -25, 8, 8, 0xffffff).setRotation(Math.PI/4)); // 2루
+        } else {
+            // 일반 상가 건물들의 바디 (하얀색 벽돌/페인트)
+            elements.push(this.add.rectangle(0, 0, width * 0.8, height * 0.6, 0xffffff).setStrokeStyle(2, 0xaaaaaa));
+            
+            // 타입별 지붕 및 장식
+            if (type === 'gym') {
+                // 훈련소: 빨간 반원 지붕
+                elements.push(this.add.ellipse(0, -height*0.3, width*0.9, height*0.4, 0xe53935).setStrokeStyle(2, 0x333333));
+                elements.push(this.add.rectangle(0, -height*0.3, width*0.8, height*0.2, 0xe53935));
+                elements.push(this.add.rectangle(0, height*0.1, 40, 40, 0x555555)); // 철제 문
+            } else if (type === 'hospital') {
+                // 병원: 둥근 파란 지붕
+                elements.push(this.add.ellipse(0, -height*0.3, width*0.9, height*0.4, 0x1e88e5).setStrokeStyle(2, 0x333333));
+                elements.push(this.add.rectangle(0, -height*0.3, width*0.8, height*0.2, 0x1e88e5));
+                // 대형 십자 마크
+                elements.push(this.add.rectangle(0, -height*0.35, 30, 10, 0xffffff));
+                elements.push(this.add.rectangle(0, -height*0.35, 10, 30, 0xffffff));
+                elements.push(this.add.rectangle(0, height*0.1, 40, 40, 0x81d4fa)); // 유리문
+            } else if (type === 'shop') {
+                // 상점: 노란색 지붕 및 어닝(천막)
+                elements.push(this.add.ellipse(0, -height*0.3, width*0.9, height*0.4, 0xfbc02d).setStrokeStyle(2, 0x333333));
+                elements.push(this.add.rectangle(0, -height*0.3, width*0.8, height*0.2, 0xfbc02d));
+                // 어닝 (천막 무늬)
+                for (let i = 0; i < 5; i++) {
+                    const c = i % 2 === 0 ? 0xff0000 : 0xffffff;
+                    elements.push(this.add.rectangle(-width*0.32 + i * (width*0.16), -height*0.1, width*0.16, 20, c));
+                }
+                elements.push(this.add.rectangle(0, height*0.15, 60, 30, 0x8d6e63)); // 상점 문/진열장
+            }
+        }
 
-        const label = this.add.text(0, -height/2 - 50, titleText, {
-            fontSize: '50px', shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 4, fill: true }
-        }).setOrigin(0.5);
+        // 중앙 메인 아이콘
+        const iconY = type === 'stadium' ? -20 : -height * 0.45;
+        const iconObj = this.add.text(0, iconY, icon, { fontSize: type === 'stadium' ? '60px' : '40px' }).setOrigin(0.5);
+        elements.push(iconObj);
 
-        const subLabel = this.add.text(0, height/2 + 30, subtitleText, {
+        // 하단 설명 라벨 (눈에 잘 띄게)
+        const subLabel = this.add.text(0, height/2 + 20, subtitleText, {
             fontSize: '18px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 4, backgroundColor: '#00000099', padding: { x: 5, y: 5 }, align: 'center'
         }).setOrigin(0.5);
+        elements.push(subLabel);
 
-        container.add([shadow, bg, roof, door, win1, win2, label, subLabel]);
+        container.add(elements);
 
-        // 상호작용을 위한 투명 Zone
-        const zone = this.add.zone(0, 0, width + 20, height + 100).setInteractive({ useHandCursor: true });
+        // 클릭 상호작용 투명 Zone
+        const zone = this.add.zone(0, 0, width, height + 50).setInteractive({ useHandCursor: true });
         container.add(zone);
 
         zone.on('pointerover', () => {
-            this.tweens.add({ targets: container, y: y - 10, duration: 150, ease: 'Back.easeOut' });
-            win1.setAlpha(0.9); win2.setAlpha(0.9); // 창문 불 켜짐
+            this.tweens.add({ targets: container, y: y - 15, duration: 150, ease: 'Back.easeOut' });
+            iconObj.setScale(1.2);
         });
 
         zone.on('pointerout', () => {
             this.tweens.add({ targets: container, y: y, duration: 150, ease: 'Back.easeIn' });
-            win1.setAlpha(0.3); win2.setAlpha(0.3); // 창문 불 꺼짐
+            iconObj.setScale(1);
         });
 
         zone.on('pointerdown', () => {
-            this.tweens.add({ targets: container, scale: 0.95, duration: 50, yoyo: true });
+            this.tweens.add({ targets: container, scale: 0.9, duration: 50, yoyo: true });
             onClick();
         });
     }

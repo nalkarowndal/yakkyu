@@ -28,36 +28,126 @@ export class BootScene extends Phaser.Scene {
     }
 
     createPixelArtTextures() {
-        // 1. 경기장(Stadium) 배경 생성 (Graphics 활용)
+        // 1. 경기장(Stadium) 배경 생성 (현실적인 2D 탑다운 뷰)
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
         
-        // 잔디밭
-        graphics.fillStyle(0x386641);
-        graphics.fillRect(0, 0, 800, 600);
+        const w = 1600;
+        const h = 1600;
+        const cx = 800; // Home Plate X (Texture)
+        const cy = 1000; // Home Plate Y (Texture)
+
+        // 1. 도시 스카이라인 (상단부)
+        graphics.fillStyle(0x87CEEB); // 하늘
+        graphics.fillRect(0, 0, w, 400);
+        graphics.fillStyle(0x2C3E50); // 빌딩 1
+        graphics.fillRect(400, 200, 100, 200);
+        graphics.fillStyle(0x34495E); // 빌딩 2
+        graphics.fillRect(520, 150, 120, 250);
+        graphics.fillStyle(0x2C3E50); // 빌딩 3
+        graphics.fillRect(800, 180, 150, 220);
+        graphics.fillStyle(0x34495E); // 빌딩 4
+        graphics.fillRect(1000, 100, 120, 300);
+
+        // 2. 관중석 (외곽 회색 영역)
+        graphics.fillStyle(0x606060);
+        graphics.fillRect(0, 350, w, h - 350);
+
+        // 3. 야구장 외야 펜스 및 필드 베이스
+        graphics.fillStyle(0x1B5E20); // 진한 외야 잔디 (기본 바탕)
+        graphics.fillCircle(cx, cy, 550); 
+        graphics.fillRect(cx - 550, cy - 200, 1100, 600); // 내야 쪽 사각형
+
+        // 관중석 도트 (사람들)
+        graphics.fillStyle(0xffffff, 0.3);
+        for(let i=0; i<1000; i++) {
+             let rx = Phaser.Math.Between(0, w);
+             let ry = Phaser.Math.Between(350, h);
+             let dist = Phaser.Math.Distance.Between(cx, cy, rx, ry);
+             if (dist > 550 && ry < cy + 300) {
+                 graphics.fillCircle(rx, ry, 2);
+             }
+        }
+
+        // 4. 워닝 트랙 (외야 펜스 앞 흙밭)
+        graphics.fillStyle(0x8D6E63);
+        graphics.fillCircle(cx, cy, 500); // 워닝트랙 바깥선
         
-        // 파울 라인 (홈에서 양쪽 외야로 뻗어나가는 선)
+        // 5. 체커보드 잔디 (Checkerboard Grass)
+        graphics.fillStyle(0x2E7D32); // 밝은 잔디
+        graphics.fillCircle(cx, cy, 480);
+        graphics.fillRect(cx - 480, cy - 100, 960, 400);
+
+        graphics.fillStyle(0x388E3C, 0.4); // 패턴 색상
+        for (let i = 0; i < w; i += 40) {
+            for (let j = 0; j < h; j += 40) {
+                if ((i/40 + j/40) % 2 === 0) continue;
+                let dist = Phaser.Math.Distance.Between(cx, cy, i+20, j+20);
+                if (dist < 480 || (j > cy - 100 && j < cy + 300 && Math.abs(i - cx) < 480)) {
+                    graphics.fillRect(i, j, 40, 40);
+                }
+            }
+        }
+
+        // 6. 파울 라인 및 파울 폴대
         graphics.lineStyle(4, 0xffffff);
         graphics.beginPath();
-        graphics.moveTo(400, 400); 
-        graphics.lineTo(0, 0); 
-        graphics.moveTo(400, 400);
-        graphics.lineTo(800, 0); 
+        graphics.moveTo(cx, cy); 
+        graphics.lineTo(cx + 400, cy - 400); // 우측 페어라인
+        graphics.moveTo(cx, cy);
+        graphics.lineTo(cx - 400, cy - 400); // 좌측 페어라인
         graphics.strokePath();
 
-        // 투수 마운드 (흙)
-        graphics.fillStyle(0xbc4749);
-        graphics.fillCircle(400, 170, 70);
-        graphics.fillStyle(0xf2e8cf);
-        graphics.fillRect(380, 165, 40, 8); // 투수 발판
+        // 파울 폴대 (노란색)
+        graphics.fillStyle(0xffff00);
+        graphics.fillCircle(cx + 353, cy - 353, 6); // 반경 500펜스와 만나는 지점
+        graphics.fillCircle(cx - 353, cy - 353, 6);
+
+        // 7. 내야 흙 (Infield Dirt)
+        graphics.fillStyle(0x8D6E63);
+        graphics.fillCircle(cx, cy - 120, 140); // 마운드 중심 흙
+        graphics.beginPath();
+        graphics.moveTo(cx, cy + 40); // 홈 뒷편
+        graphics.lineTo(cx + 150, cy - 120); // 1루 밖
+        graphics.lineTo(cx - 150, cy - 120); // 3루 밖
+        graphics.closePath();
+        graphics.fillPath();
+
+        // 베이스라인 흙길 (홈 - 1루, 홈 - 3루)
+        graphics.lineStyle(20, 0x8D6E63);
+        graphics.beginPath();
+        graphics.moveTo(cx, cy);
+        graphics.lineTo(cx + 120, cy - 120);
+        graphics.moveTo(cx, cy);
+        graphics.lineTo(cx - 120, cy - 120);
+        graphics.strokePath();
+
+        // 8. 내야 잔디 (Infield Grass)
+        graphics.fillStyle(0x2E7D32);
+        graphics.beginPath();
+        graphics.moveTo(cx, cy - 20); // 홈 앞
+        graphics.lineTo(cx + 100, cy - 120); // 1루 앞
+        graphics.lineTo(cx, cy - 220); // 2루 앞
+        graphics.lineTo(cx - 100, cy - 120); // 3루 앞
+        graphics.closePath();
+        graphics.fillPath();
+
+        // 9. 베이스 및 마운드 주변
+        graphics.fillStyle(0x8D6E63);
+        graphics.fillCircle(cx + 120, cy - 120, 25); // 1루
+        graphics.fillCircle(cx, cy - 240, 25); // 2루
+        graphics.fillCircle(cx - 120, cy - 120, 25); // 3루
+        graphics.fillCircle(cx, cy, 30); // 홈
+        graphics.fillCircle(cx, cy - 120, 25); // 마운드
+
+        graphics.fillStyle(0xffffff);
+        graphics.fillRect(cx - 10, cy - 123, 20, 6); // 투수판
+        graphics.fillPoints([{x: cx, y: cy + 8}, {x: cx + 6, y: cy}, {x: cx + 6, y: cy - 8}, {x: cx - 6, y: cy - 8}, {x: cx - 6, y: cy}], true); // 홈
         
-        // 홈 플레이트 흙 영역
-        graphics.fillStyle(0xbc4749);
-        graphics.fillCircle(400, 400, 90);
-        // 홈 베이스 오각형
-        graphics.fillStyle(0xf2e8cf);
-        graphics.fillPoints([{x: 400, y: 415}, {x: 410, y: 405}, {x: 410, y: 395}, {x: 390, y: 395}, {x: 390, y: 405}], true); 
+        graphics.fillPoints([{x: cx + 120, y: cy - 115}, {x: cx + 125, y: cy - 120}, {x: cx + 120, y: cy - 125}, {x: cx + 115, y: cy - 120}], true); // 1루
+        graphics.fillPoints([{x: cx, y: cy - 235}, {x: cx + 5, y: cy - 240}, {x: cx, y: cy - 245}, {x: cx - 5, y: cy - 240}], true); // 2루
+        graphics.fillPoints([{x: cx - 120, y: cy - 115}, {x: cx - 115, y: cy - 120}, {x: cx - 120, y: cy - 125}, {x: cx - 125, y: cy - 120}], true); // 3루
         
-        graphics.generateTexture('stadium', 800, 600);
+        graphics.generateTexture('stadium', w, h);
 
         // 1.5 백스톱(Backstop) 카메라 시점의 3D 원근감 경기장 추가
         const bgBack = this.make.graphics({ x: 0, y: 0, add: false });

@@ -79,7 +79,7 @@ export class MatchScene extends Phaser.Scene {
         this.homePlatePosition = { x: 400, y: 400 };
 
         // 배경 및 캐릭터 이미지 배치 (가장 뒤에 렌더링되도록 Z-depth 설정)
-        this.stadiumBg = this.add.image(400, 300, 'stadium').setDisplaySize(800, 600).setDepth(-10);
+        this.stadiumBg = this.add.image(400, 300, 'stadium').setDepth(-10);
         this.pitcherSprite = this.add.image(this.moundPosition.x, this.moundPosition.y, 'pitcher').setOrigin(0.5, 1).setDepth(-5).setScale(0.7);
         this.batterSprite = this.add.image(280, 550, 'batter').setOrigin(0.5, 1).setDepth(5).setScale(1.8);
 
@@ -103,26 +103,23 @@ export class MatchScene extends Phaser.Scene {
             delay: 500 // 투수와 숨쉬는 타이밍을 살짝 다르게 (엇박자)
         });
 
-        // 🏃 탑다운 뷰(수비 시점)에서만 나타날 수비수(야수) 7명 배치
+        // 🏃 탑다운 뷰(수비 시점)에서만 나타날 수비수(야수) 7명 배치 (확장된 구장 스케일에 맞게 조정)
         this.fielders = [];
         const fielderCoords = [
-            { x: 480, y: 250 }, // 1루수
-            { x: 420, y: 180 }, // 2루수
-            { x: 320, y: 250 }, // 3루수
-            { x: 380, y: 180 }, // 유격수
-            { x: 530, y: 230 }, // 1루수 (1루 베이스 근처)
-            { x: 470, y: 140 }, // 2루수 (1루와 2루 사이 깊은 내야)
-            { x: 270, y: 230 }, // 3루수 (3루 베이스 근처)
-            { x: 330, y: 140 }, // 유격수 (2루와 3루 사이 깊은 내야)
-            { x: 200, y: 120 }, // 좌익수
-            { x: 400, y: 80 },  // 중견수
-            { x: 400, y: 60 },  // 중견수 (2루 뒤 깊은 외야)
-            { x: 600, y: 120 }  // 우익수
+            { x: 530, y: 260, role: '1B', name: '1루수' },
+            { x: 450, y: 160, role: '2B', name: '2루수' },
+            { x: 270, y: 260, role: '3B', name: '3루수' },
+            { x: 350, y: 160, role: 'SS', name: '유격수' },
+            { x: 200, y: 0,   role: 'LF', name: '좌익수' },
+            { x: 400, y: -60, role: 'CF', name: '중견수' },
+            { x: 600, y: 0,   role: 'RF', name: '우익수' }
         ];
         fielderCoords.forEach(coord => {
             const fielder = this.add.sprite(coord.x, coord.y, 'pitcher').setScale(0.5).setAlpha(0).setDepth(4);
             fielder.originalX = coord.x;
             fielder.originalY = coord.y;
+            fielder.role = coord.role;
+            fielder.roleName = coord.name;
             this.fielders.push(fielder);
         });
 
@@ -170,6 +167,20 @@ export class MatchScene extends Phaser.Scene {
         const duration = instant ? 0 : 300; // 카메라 컷 전환처럼 짧게 설정
         
         if (viewType === 'BACK') {
+            // 🌟 5. 포스트 프로세싱 (Vignette) - 투수와 타자에게 집중되는 효과
+            if (this.cameras.main.postFX) {
+                if (!this.vignetteFX) {
+                    this.vignetteFX = this.cameras.main.postFX.addVignette(0.5, 0.5, 0.85, 0.4);
+                } else {
+                    this.vignetteFX.active = true;
+                }
+            }
+
+            // 카메라 트래킹 해제 및 위치 초기화
+            this.cameras.main.stopFollow();
+            this.cameras.main.setZoom(1);
+            this.cameras.main.centerOn(400, 300);
+
             // 백뷰: 타자와 투수에게 줌인된 시점 (홈 플레이트가 화면 하단으로 내려옴)
             this.moundPosition = { x: 400, y: 254 };
             this.homePlatePosition = { x: 400, y: 530 };
@@ -194,12 +205,23 @@ export class MatchScene extends Phaser.Scene {
                 if (activeUIs.length > 0) this.tweens.add({ targets: activeUIs, alpha: 1, duration: duration });
             }
         } else if (viewType === 'TOP_DOWN') {
+            // 🌟 5. 포스트 프로세싱 (Vignette) 해제
+            if (this.vignetteFX) this.vignetteFX.active = false;
+
+            // 🌟 2. 다이내믹 카메라 (줌 & 트래킹) - 타구 발생 시 공을 부드럽게 쫓아감
+            this.cameras.main.setBackgroundColor('#2e7d32'); // 카메라가 맵 밖을 비춰도 잔디처럼 보이게 처리
+            // this.cameras.main.setBounds(0, 0, 800, 600); // 🚫 화면 잘림(부자연스러운 카메라 고정) 현상을 막기 위해 바운드 제한 해제
+            if (this.ball) {
+                this.cameras.main.startFollow(this.ball, true, 0.08, 0.08);
+                this.cameras.main.setZoom(1.2); // 줌인 수치를 1.6에서 1.2로 완화하여 가림 현상 방지
+            }
+
             // 쿼터/탑다운 뷰: 경기장 전체가 보이는 시점 (거대한 투수/타자는 시야에서 숨김)
-            this.moundPosition = { x: 400, y: 170 };
+            this.moundPosition = { x: 400, y: 280 }; // 새로 그려진 다이아몬드 정중앙 흙에 맞춤
             this.homePlatePosition = { x: 400, y: 400 };
 
-            // 🌟 텍스처를 전체 탑다운 뷰로 즉시 교체
-            this.stadiumBg.setTexture('stadium').setPosition(400, 300).setScale(1);
+            // 🌟 1600x1600 메가 텍스처를 좌표계에 맞게 배치 (TextureCenter(800,800) -> World(400,200) 에 둬야 HomePlate가 400,400에 일치함)
+            this.stadiumBg.setTexture('stadium').setPosition(400, 200).setScale(1);
 
             if (instant) {
                 this.pitcherSprite.setAlpha(0);
@@ -299,29 +321,34 @@ export class MatchScene extends Phaser.Scene {
 
             // 판정 시스템을 통해 결과 도출
             const result = MatchSystem.calculateSwingResult(timingDiff, this.playerData.stats, pitchQuality);
-            this.resultText.setText(result.result).setColor(result.color);
-            this.updateCount(result.result);
 
-            // 타격 결과에 따른 애니메이션 및 딜레이 처리
-            let delay = 2000;
-            if (!result.result.includes('헛스윙')) {
-                delay = this.playHitEffect(result);
+            const proceedNext = () => {
+                if (!this.scene.isActive()) return;
+                this.time.delayedCall(2000, () => {
+                    this.resultText.setText('');
+                    if (this.plateAppearanceEnded && this.playerData.role === 'batter' && !this.isGameOver) {
+                        this.plateAppearanceEnded = false;
+                        this.playerBattingIndex = (this.playerBattingIndex + 1) % 9;
+                        this.startGameLoop();
+                    } else {
+                        this.startNextPitch();
+                    }
+                });
+            };
+
+            if (result.result.includes('헛스윙')) {
+                this.resultText.setText(result.result).setColor(result.color);
+                this.updateCount(result.result);
+                proceedNext();
+            } else {
+                // 수비 시점으로 넘어가며 타격 결과를 즉시 노출하지 않음 (긴장감 조성)
+                this.playHitEffect(result, () => {
+                    // 수비(송구/심판 판정 등)가 끝나는 순간 결과 텍스트와 스코어보드를 업데이트!
+                    this.resultText.setText(result.result).setColor(result.color);
+                    this.updateCount(result.result);
+                    proceedNext();
+                });
             }
-
-            // 타격 후 다음 투구 준비
-            this.time.delayedCall(delay, () => {
-                if (!this.scene.isActive()) return; // 씬이 전환되었으면 중단
-                this.resultText.setText('');
-                
-                // 타석이 끝났으면 시뮬레이션 진행 후 내 타석 복귀, 아니면 다음 투구 진행
-                if (this.plateAppearanceEnded && this.playerData.role === 'batter' && !this.isGameOver) {
-                    this.plateAppearanceEnded = false;
-                    this.playerBattingIndex = (this.playerBattingIndex + 1) % 9;
-                    this.startGameLoop();
-                } else {
-                    this.startNextPitch();
-                }
-            });
         });
     }
 
@@ -526,6 +553,99 @@ export class MatchScene extends Phaser.Scene {
 
         this.startGameLoop(); // 투수 시뮬레이션/투구 루프 시작
 
+        // 🌟 궤적 미리보기를 위한 그래픽 객체 생성
+        this.trajectoryPreviewGraphics = this.add.graphics();
+        this.trajectoryPreviewGraphics.setDepth(20);
+        this.uiElements.push(this.trajectoryPreviewGraphics);
+
+        // 🌟 마우스 이동 시 구종별 예상 궤적 표시 (미리보기)
+        this.input.on('pointermove', (pointer) => {
+            if (this.trajectoryPreviewGraphics) this.trajectoryPreviewGraphics.clear();
+
+            if (this.isGameOver) return;
+            if (this.playerData.role === 'pitcher' && this.gameState.isBottom) return;
+            if (pointer.y < 300 || pointer.y > 600) return;
+            if (this.isPitcherWaiting || !this.selectedPitch) return;
+            if (this.currentView !== 'BACK') return; // 백뷰에서만 표시
+
+            const pitchData = this.selectedPitch;
+            const startX = this.moundPosition.x;
+            const startY = this.moundPosition.y;
+            const targetX = pointer.x;
+            const targetY = pointer.y;
+
+            // 변화구 Ease 함수 가져오기 (Ball.js와 동일한 물리 계산 적용)
+            let easeFunc = Phaser.Math.Easing.Linear;
+            const easeName = pitchData.curveEase;
+            if (easeName === 'Sine.easeIn') easeFunc = Phaser.Math.Easing.Sine.In;
+            else if (easeName === 'Cubic.easeIn') easeFunc = Phaser.Math.Easing.Cubic.In;
+            else if (easeName === 'Quad.easeIn') easeFunc = Phaser.Math.Easing.Quadratic.In;
+            else if (easeName === 'Cubic.easeInOut') easeFunc = Phaser.Math.Easing.Cubic.InOut;
+            else if (easeName === 'Expo.easeIn') easeFunc = Phaser.Math.Easing.Expo.In;
+
+            // 궤적을 점(불투명한 원)들로 그리기
+            for (let t = 0.05; t <= 1; t += 0.05) {
+                let currentX = Phaser.Math.Linear(startX, targetX, t);
+                let currentY = Phaser.Math.Linear(startY, targetY, t);
+
+                const gravityDrop = (t * t) * 30;
+                currentY += gravityDrop;
+
+                const breakT = easeFunc(t);
+                currentX += pitchData.breakX * breakT;
+
+                let dropAmount = pitchData.dropY * breakT;
+                if (pitchData.id === 'four_seam' || pitchData.id === 'two_seam') {
+                    dropAmount -= gravityDrop * 1.5;
+                }
+                currentY += dropAmount;
+
+                // 너클볼은 예측 불가이므로 궤적 미리보기에 Jitter를 살짝만 표현 (제거하여 깔끔하게 표시)
+                // 점 크기는 다가올수록(t가 커질수록) 커짐
+                const radius = 2 + (t * 3);
+                this.trajectoryPreviewGraphics.fillStyle(pitchData.color || 0xffffff, 0.4); // 40% 투명도
+                this.trajectoryPreviewGraphics.fillCircle(currentX, currentY, radius);
+            }
+
+            // 제구력(Control) 기반 오차 범위 계산
+            const control = this.playerData.stats.control || 40;
+            const maxError = Math.max(0, 70 - control);
+
+            // 최종 도착 예상 지점 (마우스 커서 + 구종별 무브먼트)
+            const finalDestX = targetX + pitchData.breakX;
+            let finalDestY = targetY + pitchData.dropY;
+            const finalGravity = 30; // t=1일 때 gravityDrop
+            if (pitchData.id === 'four_seam' || pitchData.id === 'two_seam') {
+                finalDestY += finalGravity - (finalGravity * 1.5); // 라이징 상쇄 계산
+            } else {
+                finalDestY += finalGravity;
+            }
+
+            // 탄착 지점(공이 최종 도달하는 곳)에 오차 범위 불투명 원 그리기
+            this.trajectoryPreviewGraphics.fillStyle(0xff0000, 0.15); // 빨간색 반투명
+            this.trajectoryPreviewGraphics.fillCircle(finalDestX, finalDestY, maxError);
+            this.trajectoryPreviewGraphics.lineStyle(1, 0xffaa00, 0.5);
+            this.trajectoryPreviewGraphics.strokeCircle(finalDestX, finalDestY, maxError);
+
+            // 마우스 커서 위치(투수가 겨냥하는 에임)에 크로스헤어 표시
+            this.trajectoryPreviewGraphics.lineStyle(2, 0x00ffff, 0.8);
+            this.trajectoryPreviewGraphics.beginPath();
+            this.trajectoryPreviewGraphics.moveTo(targetX - 10, targetY);
+            this.trajectoryPreviewGraphics.lineTo(targetX + 10, targetY);
+            this.trajectoryPreviewGraphics.moveTo(targetX, targetY - 10);
+            this.trajectoryPreviewGraphics.lineTo(targetX, targetY + 10);
+            this.trajectoryPreviewGraphics.strokePath();
+            
+            // 최종 탄착 지점 십자선 표시
+            this.trajectoryPreviewGraphics.lineStyle(2, 0xff0000, 0.6);
+            this.trajectoryPreviewGraphics.beginPath();
+            this.trajectoryPreviewGraphics.moveTo(finalDestX - 5, finalDestY);
+            this.trajectoryPreviewGraphics.lineTo(finalDestX + 5, finalDestY);
+            this.trajectoryPreviewGraphics.moveTo(finalDestX, finalDestY - 5);
+            this.trajectoryPreviewGraphics.lineTo(finalDestX, finalDestY + 5);
+            this.trajectoryPreviewGraphics.strokePath();
+        });
+
         // 투수 투구 이벤트 (배경 클릭 시)
         this.input.on('pointerdown', (pointer) => {
             // UI 버튼이 있는 영역이나, 너무 위쪽(마운드 위)을 클릭한 경우는 투구하지 않음
@@ -564,6 +684,8 @@ export class MatchScene extends Phaser.Scene {
             this.resultText.setText('');
             this.ball.setVisible(true);
             this.ball.body.setVelocity(0, 0); // 이전 타격된 공의 물리 속도 초기화
+
+            if (this.trajectoryPreviewGraphics) this.trajectoryPreviewGraphics.clear(); // 🌟 클릭 시 궤적 미리보기 즉시 지우기
 
             this.isPitcherWaiting = true; // 🔒 투구 시작 시 연속 클릭(광클) 방지 락 걸기
 
@@ -660,13 +782,14 @@ export class MatchScene extends Phaser.Scene {
                      else if (rand < foulChance) hitResult = '파울';
                      else hitResult = '땅볼';
 
-                     this.resultText.setText(`${this.opponentTeam} 타자: ${hitResult}!`).setColor('#ff00ff');
-                     
-                     // playHitEffect가 반환하는 연출 시간(delay)만큼 기다렸다가 락 해제
-                     const delay = this.playHitEffect({ result: hitResult });
-                     this.updateCount(hitResult);
-                     this.time.delayedCall(delay, () => { 
-                         this.checkPitcherNextTurn(); 
+                     // 타격 결과 텍스트 출력 생략 (결과 지연)
+                     // 수비 애니메이션이 끝난 후 콜백으로 결과 업데이트
+                     this.playHitEffect({ result: hitResult }, () => {
+                         this.resultText.setText(`${this.opponentTeam} 타자: ${hitResult}!`).setColor('#ff00ff');
+                         this.updateCount(hitResult);
+                         this.time.delayedCall(2000, () => { 
+                             this.checkPitcherNextTurn(); 
+                         });
                      });
                 } else {
                      this.playCatchEffect(finalX, finalY); // ⚾ 스트라이크/헛스윙 시 미트 이펙트
@@ -1358,7 +1481,7 @@ export class MatchScene extends Phaser.Scene {
         });
     }
 
-    playHitEffect(resultObj) {
+    playHitEffect(resultObj, onPlayEnd) {
         // 타격 사운드 재생
         if (this.cache.audio.exists('hit_sound')) this.sound.play('hit_sound');
 
@@ -1372,7 +1495,7 @@ export class MatchScene extends Phaser.Scene {
         const resultText = resultObj.result;
         const powerStat = this.playerData.stats?.power || 15;
         
-        let hitAngle = Phaser.Math.Between(-110, -70); // 외야(위쪽) 방향
+        let hitAngle = Phaser.Math.Between(-130, -50); // 페어(Fair) 지역 방향
         let hitPower = 0;
         let nextPitchDelay = 2000;
 
@@ -1387,17 +1510,25 @@ export class MatchScene extends Phaser.Scene {
         this.playParticleBurst(impactX, impactY - 20, particleColor, 30, 400);
 
         if (resultText.includes('홈런')) {
-            hitPower = powerStat * 15;
+            hitPower = 50 + Phaser.Math.Between(0, 20); // 50 * 12 = 600 (펜스 500 밖으로 훌쩍 넘어감)
+            hitAngle = Phaser.Math.Between(-130, -50); // 페어 구역
             nextPitchDelay = 4000; // 홈런 연출을 감상할 수 있도록 딜레이 증가
 
             // 카메라 연출: 흔들림 + 플래시
             this.cameras.main.shake(300, 0.02);
             this.cameras.main.flash(500, 255, 255, 255);
 
+            // 🌟 1. Bullet Time (슬로우 모션) 적용
+            if (this.tweens) this.tweens.timeScale = 0.3;
+            setTimeout(() => { if (this && this.tweens) this.tweens.timeScale = 1; }, 1200);
+
             // 텍스트 애니메이션 연출
             const hrText = this.add.text(400, 300, 'HOME RUN!', { 
                 fontSize: '80px', fill: '#ff00ff', fontStyle: 'bold', stroke: '#ffffff', strokeThickness: 6
             }).setOrigin(0.5).setAlpha(0).setScale(0.5).setDepth(100);
+
+            // 🌟 5. 포스트 프로세싱 (Bloom) - 홈런 텍스트 네온 효과
+            if (hrText.postFX) hrText.postFX.addBloom(0xff00ff, 1, 1, 2, 1.5);
 
             this.tweens.add({
                 targets: hrText,
@@ -1438,7 +1569,8 @@ export class MatchScene extends Phaser.Scene {
                 onComplete: () => runnerContainer.destroy() // 베이스를 다 돌면 삭제
             });
         } else if (resultText.includes('안타')) {
-            hitPower = powerStat * 10;
+            hitPower = Phaser.Math.Between(15, 25); // 180 ~ 300 (내야를 벗어난 얕은 외야)
+            hitAngle = Phaser.Math.Between(-130, -50);
             nextPitchDelay = 3000;
 
             const hitText = this.add.text(400, 300, 'HIT!', { 
@@ -1457,7 +1589,8 @@ export class MatchScene extends Phaser.Scene {
                 onComplete: () => hitText.destroy()
             });
         } else if (resultText.includes('2루타') || resultText.includes('3루타')) {
-            hitPower = powerStat * 12;
+            hitPower = Phaser.Math.Between(30, 40); // 360 ~ 480 (펜스 앞 깊은 외야)
+            hitAngle = Phaser.Math.Between(-130, -50);
             nextPitchDelay = 3500;
 
             const isTriple = resultText.includes('3루타');
@@ -1480,12 +1613,22 @@ export class MatchScene extends Phaser.Scene {
                 onComplete: () => hitText.destroy()
             });
         } else if (resultText.includes('파울')) {
-            hitPower = powerStat * 5;
-            hitAngle = Math.random() > 0.5 ? Phaser.Math.Between(0, 45) : Phaser.Math.Between(135, 180);
+            hitPower = Phaser.Math.Between(15, 50); // 다양한 비거리
+            hitAngle = Math.random() > 0.5 ? Phaser.Math.Between(-40, 0) : Phaser.Math.Between(-180, -140); // 파울 라인 바깥
         } else if (resultText.includes('땅볼')) {
-            hitPower = powerStat * 3;
-            hitAngle = Phaser.Math.Between(-110, -70);
+            hitPower = Phaser.Math.Between(5, 12); // 60 ~ 144 (내야 땅볼)
+            hitAngle = Phaser.Math.Between(-130, -50);
         }
+
+        // 홈런 및 파울은 송구 모션이 없으므로 직접 체공 시간에 맞춰 콜백 트리거
+        if (resultText.includes('홈런')) {
+            if (onPlayEnd) this.time.delayedCall(nextPitchDelay, onPlayEnd);
+        } else if (resultText.includes('파울')) {
+            if (onPlayEnd) this.time.delayedCall(1500, onPlayEnd);
+        }
+
+        // 🌟 3. 타격 임팩트 파티클 고도화 (방향성 부채꼴 스파크)
+        this.playDirectionalSparks(impactX, impactY - 20, hitAngle, hitPower);
 
         // 공 물리 궤적(Ball.hit) 호출
         this.ball.hit(hitPower, hitAngle);
@@ -1499,9 +1642,9 @@ export class MatchScene extends Phaser.Scene {
 
         const baseCoords = [
             { x: 400, y: 400 }, // 0: Home
-            { x: 500, y: 300 }, // 1: 1B
-            { x: 400, y: 220 }, // 2: 2B
-            { x: 300, y: 300 }, // 3: 3B
+            { x: 520, y: 280 }, // 1: 1B
+            { x: 400, y: 160 }, // 2: 2B
+            { x: 280, y: 280 }, // 3: 3B
             { x: 400, y: 400 }  // 4: Home (End)
         ];
 
@@ -1581,7 +1724,7 @@ export class MatchScene extends Phaser.Scene {
             }
         });
 
-        // 🏃 수비 AI 고도화: 중계 플레이, 백업, 베이스 커버 포지셔닝
+        // 🏃 수비 AI 고도화: 중계 플레이, 백업, 베이스 커버 포지셔닝 및 송구
         const rad = Phaser.Math.DegToRad(hitAngle);
         
         // 타구의 체공/구르는 거리를 예측
@@ -1591,62 +1734,76 @@ export class MatchScene extends Phaser.Scene {
 
         const isGroundball = resultText.includes('땅볼') || resultText.includes('안타');
         const isFlyball = resultText.includes('홈런') || resultText.includes('2루타') || resultText.includes('3루타') || resultText.includes('파울');
+        const isOut = resultText.includes('땅볼') || resultText.includes('파울');
 
-        // 수비수들을 타구 도착지점과의 거리 기준으로 정렬하여 역할 분담
+        // 수비수들을 원래 위치 기준으로 타구 도착지점과의 거리로 정렬
         const sortedFielders = [...this.fielders].map(f => ({
             sprite: f,
-            dist: Phaser.Math.Distance.Between(f.x, f.y, ballDestX, ballDestY)
+            dist: Phaser.Math.Distance.Between(f.originalX, f.originalY, ballDestX, ballDestY)
         })).sort((a, b) => a.dist - b.dist);
 
-        sortedFielders.forEach((item, index) => {
-            const fielder = item.sprite;
-            const reactionTime = Phaser.Math.Between(0, 200); // 0~0.2초 사이의 야수별 랜덤 반응 속도
-            const moveRatio = Phaser.Math.FloatBetween(0.2, 0.4); // 타구 목적지를 향해 20~40% 정도 맹렬히 이동
-            const runDuration = nextPitchDelay * 0.6; // 연출 시간의 60% 동안 달림
+        const primaryFielder = sortedFielders[0].sprite;
+        const backupFielder = sortedFielders[1].sprite;
+        
+        // 송구 타겟 베이스 (기본적으로 1루)
+        const base1 = { x: 500, y: 300 };
+        const base2 = { x: 400, y: 220 };
+        const base3 = { x: 300, y: 300 };
 
-            // 타구 방향으로 좌표 이동
-            let targetX = fielder.x;
-            let targetY = fielder.y;
-            let isPrimary = false;
+        this.fielders.forEach((fielder) => {
+            const reactionTime = Phaser.Math.Between(0, 150); // 반응 속도 0~0.15초
+            const runDuration = nextPitchDelay * 0.5; // 이동하는 데 걸리는 시간
+            let targetX = fielder.originalX;
+            let targetY = fielder.originalY;
+            let roleAction = 'idle';
 
             if (resultText.includes('홈런')) {
-                // 홈런이면 모두 담장(펜스) 쪽을 바라보며 조금만 이동
-                targetX = fielder.x + (ballDestX - fielder.x) * 0.1;
-                targetY = fielder.y + (ballDestY - fielder.y) * 0.1;
+                // 홈런: 담장 쪽을 바라보며 좌절
+                targetX = fielder.originalX + (ballDestX - fielder.originalX) * 0.1;
+                targetY = fielder.originalY + (ballDestY - fielder.originalY) * 0.1;
+            } else if (resultText.includes('파울')) {
+                // 파울: 조금만 쫓아감
+                targetX = fielder.originalX + (ballDestX - fielder.originalX) * 0.2;
+                targetY = fielder.originalY + (ballDestY - fielder.originalY) * 0.2;
             } else {
-                if (index === 0) {
-                    // 1. 메인 캐처 (가장 가까운 야수) - 타구 낙구 지점으로 전력 질주
+                if (fielder === primaryFielder) {
+                    // 1. 메인 수비수 - 타구 위치로 전력 질주
                     targetX = ballDestX;
                     targetY = ballDestY;
-                    isPrimary = true;
-                } else if (index === 1) {
-                    // 2. 백업 수비수 (공이 뒤로 빠지는 상황 대비, 타구 방향으로 100px 뒤에 위치)
-                    targetX = ballDestX + Math.cos(rad) * 100;
-                    targetY = ballDestY + Math.sin(rad) * 100;
-                } else if (index === 2 && isFlyball) {
-                    // 3. 컷오프 맨 (중계 플레이어) - 외야 타구 시 공과 2루(400, 220) 사이의 중간 지점으로 이동
-                    targetX = (ballDestX + 400) / 2;
-                    targetY = (ballDestY + 220) / 2;
+                    roleAction = 'primary';
+                } else if (fielder === backupFielder) {
+                    // 2. 백업 수비수 - 공 뒤쪽 80px에서 커버
+                    targetX = ballDestX + Math.cos(rad) * 80;
+                    targetY = ballDestY + Math.sin(rad) * 80;
+                    roleAction = 'backup';
                 } else {
-                    // 4. 베이스 커버 및 나머지 야수들
-                    if (isGroundball && fielder.y > 150) { // 내야수들은 베이스 커버를 들어감
-                        const bases = [{ x: 500, y: 300 }, { x: 400, y: 220 }, { x: 300, y: 300 }];
-                        const closestBase = bases.sort((a, b) => Phaser.Math.Distance.Between(fielder.x, fielder.y, a.x, a.y) - Phaser.Math.Distance.Between(fielder.x, fielder.y, b.x, b.y))[0];
-                        targetX = closestBase.x;
-                        targetY = closestBase.y;
+                    // 3. 베이스 커버 및 컷오프
+                    if (isFlyball || ballDestY < 180) {
+                        // 외야 타구: 내야수가 컷오프(중계)로 나감
+                        if (fielder.role === 'SS' || fielder.role === '2B') {
+                            targetX = (ballDestX + base2.x) / 2;
+                            targetY = (ballDestY + base2.y) / 2;
+                            roleAction = 'cutoff';
+                        } else if (fielder.role === '1B') { targetX = base1.x; targetY = base1.y; }
+                        else if (fielder.role === '3B') { targetX = base3.x; targetY = base3.y; }
                     } else {
-                        // 기타 야수들은 타구 방향으로 밸런스를 유지하며 살짝만 이동
-                        targetX = fielder.x + (ballDestX - fielder.x) * 0.2;
-                        targetY = fielder.y + (ballDestY - fielder.y) * 0.2;
+                        // 내야 땅볼: 베이스 커버 집중
+                        if (fielder.role === '1B') { targetX = base1.x; targetY = base1.y; }
+                        else if (fielder.role === '2B' || fielder.role === 'SS') { targetX = base2.x; targetY = base2.y; }
+                        else if (fielder.role === '3B') { targetX = base3.x; targetY = base3.y; }
                     }
                 }
             }
 
-            // 화면(필드) 밖으로 나가지 않게 클램프 처리
-            targetX = Phaser.Math.Clamp(targetX, 50, 750);
-            targetY = Phaser.Math.Clamp(targetY, 50, 550);
+            // 🌟 클램프 처리 (외야 펜스 밖, 즉 관중석으로 나가지 않도록 워닝트랙 반경 480으로 제한)
+            let distFromHome = Phaser.Math.Distance.Between(this.homePlatePosition.x, this.homePlatePosition.y, targetX, targetY);
+            if (distFromHome > 480) {
+                let angleFromHome = Phaser.Math.Angle.Between(this.homePlatePosition.x, this.homePlatePosition.y, targetX, targetY);
+                targetX = this.homePlatePosition.x + Math.cos(angleFromHome) * 480;
+                targetY = this.homePlatePosition.y + Math.sin(angleFromHome) * 480;
+            }
 
-            // 지정된 역할의 위치로 달려가기 애니메이션
+            // 지정된 위치로 이동하는 트윈
             this.tweens.add({
                 targets: fielder,
                 x: targetX,
@@ -1655,47 +1812,102 @@ export class MatchScene extends Phaser.Scene {
                 delay: reactionTime,
                 ease: 'Cubic.easeOut',
                 onComplete: () => {
-                    // 메인 수비수 다이빙/캐치 연출 통합
-                    if (isPrimary && !resultText.includes('홈런')) {
-                        const isOut = resultText.includes('땅볼') || resultText.includes('파울');
-                        this.tweens.add({
-                            targets: fielder,
-                            angle: fielder.x < ballDestX ? 90 : -90, // 다이빙 폼
-                            y: targetY - (isOut ? 0 : 25), // 안타 시 공을 살짝 지나쳐 미끄러짐
-                            duration: 300,
-                            ease: 'Expo.easeOut',
-                            onComplete: () => {
-                                if (isOut) {
-                                    this.playParticleBurst(fielder.x, fielder.y, 0xaaaaaa, 10, 100);
-                                    this.ball.body.setVelocity(0, 0); // 물리 속도 중단
-                                    this.tweens.add({ targets: this.ball, x: fielder.x, y: fielder.y, duration: 100, ease: 'Linear' });
-                                } else {
-                                    const missText = this.add.text(fielder.x, fielder.y - 30, '!', { fontSize: '20px', fill: '#ff0000', fontStyle: 'bold' }).setOrigin(0.5);
-                                    this.tweens.add({ targets: missText, y: missText.y - 20, alpha: 0, duration: 1000, onComplete: () => missText.destroy() });
-                                }
+                    if (roleAction === 'primary' && !resultText.includes('홈런') && !resultText.includes('파울')) {
+                        // 🌟 수비 실책 (Error) 확률 연출
+                        const defenseStat = this.playerData.stats?.defense || 40;
+                        const errorChance = Math.max(0.01, (100 - defenseStat) * 0.003); // 1~30% 실책
+                        const isError = Math.random() < errorChance;
+                        const throwTarget = (isFlyball) ? base2 : base1;
+
+                        if (isError) {
+                            // 공을 더듬는 모션
+                            const bobbleText = this.add.text(fielder.x, fielder.y - 30, '실책!', { fontSize: '16px', fill: '#ff0000', fontStyle: 'bold' }).setOrigin(0.5);
+                            this.tweens.add({ targets: bobbleText, y: bobbleText.y - 20, alpha: 0, duration: 1000, onComplete: () => bobbleText.destroy() });
+                            
+                            this.tweens.add({ targets: fielder, y: fielder.y - 10, duration: 150, yoyo: true, repeat: 1 }); // 당황해서 뛰는 모습
+                            this.ball.setPosition(fielder.x + 20, fielder.y + 20); // 공이 옆으로 튐
+                            
+                            // 실책 후 뒤늦은 송구
+                            this.time.delayedCall(800, () => this.performThrowAnimation(fielder, isOut, throwTarget, onPlayEnd));
+                        } else {
+                            // 정상 캐치
+                            if (isOut) {
+                                this.playParticleBurst(fielder.x, fielder.y, 0xaaaaaa, 10, 100);
+                            } else {
+                                const catchText = this.add.text(fielder.x, fielder.y - 30, 'Catch!', { fontSize: '14px', fill: '#00ff00', fontStyle: 'bold' }).setOrigin(0.5);
+                                this.tweens.add({ targets: catchText, y: catchText.y - 20, alpha: 0, duration: 1000, onComplete: () => catchText.destroy() });
                             }
-                        });
+                            
+                            this.ball.body.setVelocity(0, 0); // 물리 중단
+                            this.tweens.add({ targets: this.ball, x: fielder.x, y: fielder.y, duration: 100, ease: 'Linear' });
+                            
+                            // 🌟 1루로 송구 (Throw) 연출
+                            this.time.delayedCall(200, () => this.performThrowAnimation(fielder, isOut, throwTarget, onPlayEnd));
+                        }
                     } else {
-                        fielder.setAngle(0); // 달리기가 끝나면 제자리에서 똑바로 섬
+                        fielder.setAngle(0);
                     }
                 }
             });
 
-            // 달릴 때 좌우로 뒤뚱거리는(뛰는) 역동적인 이펙트
-            this.tweens.add({
-                targets: fielder,
-                angle: { from: -15, to: 15 },
-                duration: 150,
-                yoyo: true,
-                repeat: Math.floor(runDuration / 150),
-                delay: reactionTime
-            });
+            // 뛰는 모션 (뒤뚱뒤뚱 애니메이션)
+            if (Phaser.Math.Distance.Between(fielder.x, fielder.y, targetX, targetY) > 20) {
+                this.tweens.add({
+                    targets: fielder,
+                    angle: { from: -15, to: 15 },
+                    duration: 150,
+                    yoyo: true,
+                    repeat: Math.floor(runDuration / 150),
+                    delay: reactionTime,
+                    onComplete: () => fielder.setAngle(0)
+                });
+            }
         });
 
         return nextPitchDelay;
     }
 
+    // 🌟 송구 (Throwing) 애니메이션 및 아웃/세이프 판정 연출
+    performThrowAnimation(fielder, isOut, targetBase, onPlayEnd) {
+        this.tweens.add({
+            targets: this.ball,
+            x: targetBase.x,
+            y: targetBase.y,
+            duration: 400, // 송구 비행 속도
+            ease: 'Power1',
+            onComplete: () => {
+                // 베이스 미트 안착 파티클
+                this.playParticleBurst(targetBase.x, targetBase.y, 0xffffff, 15, 150);
+                
+                // 심판 판정 텍스트 (OUT / SAFE)
+                const judgeText = isOut ? 'OUT!' : 'SAFE!';
+                const judgeColor = isOut ? '#ff0000' : '#00ffff';
+                
+                const t = this.add.text(targetBase.x, targetBase.y - 40, judgeText, {
+                    fontSize: '30px', fill: judgeColor, fontStyle: 'bold', stroke: '#000000', strokeThickness: 3
+                }).setOrigin(0.5).setScale(0.1).setDepth(200);
+                
+                this.tweens.add({
+                    targets: t,
+                    scale: 1,
+                    y: t.y - 30,
+                    duration: 300,
+                    ease: 'Back.easeOut',
+                    onComplete: () => {
+                        // 송구가 완료되고 판정이 내려지는 이 순간, 숨겨둔 타격 결과(onPlayEnd)를 트리거!
+                        if (onPlayEnd) onPlayEnd();
+                        this.time.delayedCall(1000, () => t.destroy());
+                    }
+                });
+            }
+        });
+    }
+
     playStrikeOutEffect() {
+        // 🌟 1. Bullet Time (슬로우 모션) 적용
+        if (this.tweens) this.tweens.timeScale = 0.2;
+        setTimeout(() => { if (this && this.tweens) this.tweens.timeScale = 1; }, 800);
+
         // 카메라 흔들림 및 붉은색 섬광 연출
         this.cameras.main.shake(300, 0.015);
         this.cameras.main.flash(300, 255, 0, 0);
@@ -1707,6 +1919,9 @@ export class MatchScene extends Phaser.Scene {
         const soText = this.add.text(400, 300, 'STRIKE OUT!', { 
             fontSize: '80px', fill: '#ff0000', fontStyle: 'bold', stroke: '#ffffff', strokeThickness: 6
         }).setOrigin(0.5).setAlpha(0).setScale(3).setDepth(100);
+
+        // 🌟 5. 포스트 프로세싱 (Bloom) - 삼진 아웃 텍스트 강조
+        if (soText.postFX) soText.postFX.addBloom(0xff0000, 1, 1, 2, 1.5);
 
         // 화면에 쾅! 하고 박히는 역동적인 바운스 애니메이션
         this.tweens.add({
@@ -1780,6 +1995,24 @@ export class MatchScene extends Phaser.Scene {
         emitter.explode(count); // 지정된 개수만큼 한 번에 터트림
         
         this.time.delayedCall(1000, () => emitter.destroy()); // 연출 종료 후 메모리 정리
+    }
+
+    // 🌟 3. 타격 임팩트 파티클 고도화 (부채꼴 스파크)
+    playDirectionalSparks(x, y, angleDeg, power) {
+        const speedBase = Math.min(power * 5, 800);
+        const emitter = this.add.particles(x, y, 'particle', {
+            speed: { min: speedBase * 0.5, max: speedBase },
+            angle: { min: angleDeg - 25, max: angleDeg + 25 }, // 부채꼴 방향
+            scale: { start: 1.5, end: 0 },
+            blendMode: 'ADD',
+            tint: 0xffffaa, // 밝은 노란색 스파크
+            lifespan: 500,
+            gravityY: 100, // 살짝 아래로 처짐
+            emitting: false
+        });
+        emitter.setDepth(106);
+        emitter.explode(Math.floor(power * 0.5) + 10);
+        this.time.delayedCall(1000, () => emitter.destroy());
     }
 
     generateAIStats(inning) {

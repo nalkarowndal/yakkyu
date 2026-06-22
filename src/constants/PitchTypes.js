@@ -65,6 +65,62 @@ export const PITCH_TYPES = {
         dropY: 180,       // 위에서 아래로 꽂히는 느낌
         curveEase: 'Expo.easeIn', // 도착 직전에 미친듯이 떨어짐
         color: 0xffddaa
+    },
+    TWO_SEAM: {
+        id: 'two_seam',
+        name: '투심',
+        desc: '포심처럼 빠르지만 타자 몸쪽으로 살짝 파고듭니다.',
+        speedRatio: 0.98,
+        speed: 1220,
+        breakX: -40,
+        dropY: 20,
+        curveEase: 'Quad.easeIn',
+        color: 0xeeeeff
+    },
+    CUTTER: {
+        id: 'cutter',
+        name: '커터',
+        desc: '직구처럼 오다가 끝에서 반대 방향으로 짧게 꺾입니다.',
+        speedRatio: 0.95,
+        speed: 1250,
+        breakX: 60,
+        dropY: 10,
+        curveEase: 'Expo.easeIn',
+        color: 0xffccee
+    },
+    SWEEPER: {
+        id: 'sweeper',
+        name: '스위퍼',
+        desc: '슬라이더보다 횡방향 움직임이 극대화된 마구.',
+        speedRatio: 0.85,
+        speed: 1450,
+        breakX: 180,
+        dropY: 40,
+        curveEase: 'Cubic.easeIn',
+        color: 0xff88ff
+    },
+    SPLITTER: {
+        id: 'splitter',
+        name: '스플리터',
+        desc: '직구처럼 날아오다 홈플레이트 앞에서 짧게 떨어집니다.',
+        speedRatio: 0.92,
+        speed: 1300,
+        breakX: 0,
+        dropY: 120,
+        curveEase: 'Expo.easeIn',
+        color: 0xddffdd
+    },
+    KNUCKLEBALL: {
+        id: 'knuckle',
+        name: '너클볼',
+        desc: '회전이 없어 궤적을 예측할 수 없게 흔들립니다.',
+        speedRatio: 0.6,
+        speed: 2000,
+        breakX: 0,
+        dropY: 60,
+        isKnuckle: true, // 너클볼 전용 물리 로직을 위한 플래그
+        curveEase: 'Linear',
+        color: 0xcccccc
     }
 };
 
