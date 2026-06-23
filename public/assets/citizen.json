@@ -1,0 +1,403 @@
+{
+  "meta": {
+    "app": "makejpeg sprite analyzer",
+    "image": "modern_office_woman_4x4_1782177244144-removebg-preview.png",
+    "mode": "grid",
+    "atlas": {
+      "width": 506,
+      "height": 506,
+      "cellWidth": 125,
+      "cellHeight": 125,
+      "columns": 4,
+      "rows": 4,
+      "padding": 2,
+      "alignMode": "bottom"
+    }
+  },
+  "frames": [
+    {
+      "index": 0,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_001",
+      "row": 0,
+      "col": 0,
+      "atlasFrame": {
+        "x": 0,
+        "y": 0,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 0,
+        "y": 0,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 35,
+        "y": 2,
+        "w": 55,
+        "h": 123
+      }
+    },
+    {
+      "index": 1,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_002",
+      "row": 0,
+      "col": 1,
+      "atlasFrame": {
+        "x": 127,
+        "y": 0,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 127,
+        "y": 0,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 160,
+        "y": 2,
+        "w": 55,
+        "h": 123
+      }
+    },
+    {
+      "index": 2,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_003",
+      "row": 0,
+      "col": 2,
+      "atlasFrame": {
+        "x": 254,
+        "y": 0,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 254,
+        "y": 0,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 285,
+        "y": 2,
+        "w": 55,
+        "h": 123
+      }
+    },
+    {
+      "index": 3,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_004",
+      "row": 0,
+      "col": 3,
+      "atlasFrame": {
+        "x": 381,
+        "y": 0,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 381,
+        "y": 0,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 410,
+        "y": 2,
+        "w": 55,
+        "h": 123
+      }
+    },
+    {
+      "index": 4,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_005",
+      "row": 1,
+      "col": 0,
+      "atlasFrame": {
+        "x": 0,
+        "y": 127,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 0,
+        "y": 127,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 35,
+        "y": 127,
+        "w": 55,
+        "h": 123
+      }
+    },
+    {
+      "index": 5,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_006",
+      "row": 1,
+      "col": 1,
+      "atlasFrame": {
+        "x": 127,
+        "y": 127,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 127,
+        "y": 127,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 160,
+        "y": 127,
+        "w": 55,
+        "h": 123
+      }
+    },
+    {
+      "index": 6,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_007",
+      "row": 1,
+      "col": 2,
+      "atlasFrame": {
+        "x": 254,
+        "y": 127,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 254,
+        "y": 127,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 285,
+        "y": 127,
+        "w": 55,
+        "h": 123
+      }
+    },
+    {
+      "index": 7,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_008",
+      "row": 1,
+      "col": 3,
+      "atlasFrame": {
+        "x": 381,
+        "y": 127,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 381,
+        "y": 127,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 410,
+        "y": 127,
+        "w": 55,
+        "h": 123
+      }
+    },
+    {
+      "index": 8,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_009",
+      "row": 2,
+      "col": 0,
+      "atlasFrame": {
+        "x": 0,
+        "y": 254,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 0,
+        "y": 254,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 32,
+        "y": 254,
+        "w": 59,
+        "h": 121
+      }
+    },
+    {
+      "index": 9,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_010",
+      "row": 2,
+      "col": 1,
+      "atlasFrame": {
+        "x": 127,
+        "y": 254,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 127,
+        "y": 254,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 156,
+        "y": 254,
+        "w": 63,
+        "h": 121
+      }
+    },
+    {
+      "index": 10,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_011",
+      "row": 2,
+      "col": 2,
+      "atlasFrame": {
+        "x": 254,
+        "y": 254,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 254,
+        "y": 254,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 281,
+        "y": 254,
+        "w": 63,
+        "h": 121
+      }
+    },
+    {
+      "index": 11,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_012",
+      "row": 2,
+      "col": 3,
+      "atlasFrame": {
+        "x": 381,
+        "y": 254,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 381,
+        "y": 254,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 407,
+        "y": 254,
+        "w": 62,
+        "h": 121
+      }
+    },
+    {
+      "index": 12,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_013",
+      "row": 3,
+      "col": 0,
+      "atlasFrame": {
+        "x": 0,
+        "y": 381,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 0,
+        "y": 381,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 32,
+        "y": 380,
+        "w": 60,
+        "h": 120
+      }
+    },
+    {
+      "index": 13,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_014",
+      "row": 3,
+      "col": 1,
+      "atlasFrame": {
+        "x": 127,
+        "y": 381,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 127,
+        "y": 381,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 156,
+        "y": 380,
+        "w": 64,
+        "h": 120
+      }
+    },
+    {
+      "index": 14,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_015",
+      "row": 3,
+      "col": 2,
+      "atlasFrame": {
+        "x": 254,
+        "y": 381,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 254,
+        "y": 381,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 280,
+        "y": 380,
+        "w": 64,
+        "h": 120
+      }
+    },
+    {
+      "index": 15,
+      "name": "modern_office_woman_4x4_1782177244144-removebg-preview_016",
+      "row": 3,
+      "col": 3,
+      "atlasFrame": {
+        "x": 381,
+        "y": 381,
+        "w": 125,
+        "h": 125
+      },
+      "atlasCell": {
+        "x": 381,
+        "y": 381,
+        "w": 125,
+        "h": 125
+      },
+      "source": {
+        "x": 407,
+        "y": 380,
+        "w": 62,
+        "h": 120
+      }
+    }
+  ]
+}

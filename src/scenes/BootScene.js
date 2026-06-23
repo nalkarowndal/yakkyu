@@ -16,13 +16,25 @@ export class BootScene extends Phaser.Scene {
         this.load.image('coach_portrait', 'assets/coach.png');
         this.load.image('nurse_portrait', 'assets/nurse.png');
         this.load.image('shop_portrait', 'assets/shop.png');
+        this.load.image('town_bg', 'assets/town_bg.png');
+        this.load.image('stadium_topdown_bg', 'assets/stadium_topdown_bg.png');
+        this.load.image('defense_field_bg', 'assets/defense_field_bg.png');
         
+        // JSON 분석 결과에 따른 규격화된 스프라이트시트 로드
+        // (프레임 125x125, 프레임 간격 2px)
+        this.load.spritesheet('citizen', 'assets/citizen.png', { 
+            frameWidth: 125, 
+            frameHeight: 125, 
+            margin: 0, 
+            spacing: 2 
+        });
+
         // 로딩 중임을 알리는 텍스트
         this.add.text(640, 360, '로딩 중...', { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
 
         // 🎨 외부 파일 없이 코드로 직접 픽셀 아트와 배경 텍스처 생성
         this.createPixelArtTextures();
-        
+
         // 🎵 코드로 직접 사운드 효과(SFX) 합성하여 캐시에 추가
         this.createProceduralAudio();
     }
@@ -30,7 +42,7 @@ export class BootScene extends Phaser.Scene {
     createPixelArtTextures() {
         // 1. 경기장(Stadium) 배경 생성 (현실적인 2D 탑다운 뷰)
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
-        
+
         const w = 1600;
         const h = 1600;
         const cx = 800; // Home Plate X (Texture)
@@ -54,24 +66,24 @@ export class BootScene extends Phaser.Scene {
 
         // 3. 야구장 외야 펜스 및 필드 베이스
         graphics.fillStyle(0x1B5E20); // 진한 외야 잔디 (기본 바탕)
-        graphics.fillCircle(cx, cy, 550); 
+        graphics.fillCircle(cx, cy, 550);
         graphics.fillRect(cx - 550, cy - 200, 1100, 600); // 내야 쪽 사각형
 
         // 관중석 도트 (사람들)
         graphics.fillStyle(0xffffff, 0.3);
-        for(let i=0; i<1000; i++) {
-             let rx = Phaser.Math.Between(0, w);
-             let ry = Phaser.Math.Between(350, h);
-             let dist = Phaser.Math.Distance.Between(cx, cy, rx, ry);
-             if (dist > 550 && ry < cy + 300) {
-                 graphics.fillCircle(rx, ry, 2);
-             }
+        for (let i = 0; i < 1000; i++) {
+            let rx = Phaser.Math.Between(0, w);
+            let ry = Phaser.Math.Between(350, h);
+            let dist = Phaser.Math.Distance.Between(cx, cy, rx, ry);
+            if (dist > 550 && ry < cy + 300) {
+                graphics.fillCircle(rx, ry, 2);
+            }
         }
 
         // 4. 워닝 트랙 (외야 펜스 앞 흙밭)
         graphics.fillStyle(0x8D6E63);
         graphics.fillCircle(cx, cy, 500); // 워닝트랙 바깥선
-        
+
         // 5. 체커보드 잔디 (Checkerboard Grass)
         graphics.fillStyle(0x2E7D32); // 밝은 잔디
         graphics.fillCircle(cx, cy, 480);
@@ -80,8 +92,8 @@ export class BootScene extends Phaser.Scene {
         graphics.fillStyle(0x388E3C, 0.4); // 패턴 색상
         for (let i = 0; i < w; i += 40) {
             for (let j = 0; j < h; j += 40) {
-                if ((i/40 + j/40) % 2 === 0) continue;
-                let dist = Phaser.Math.Distance.Between(cx, cy, i+20, j+20);
+                if ((i / 40 + j / 40) % 2 === 0) continue;
+                let dist = Phaser.Math.Distance.Between(cx, cy, i + 20, j + 20);
                 if (dist < 480 || (j > cy - 100 && j < cy + 300 && Math.abs(i - cx) < 480)) {
                     graphics.fillRect(i, j, 40, 40);
                 }
@@ -91,7 +103,7 @@ export class BootScene extends Phaser.Scene {
         // 6. 파울 라인 및 파울 폴대
         graphics.lineStyle(4, 0xffffff);
         graphics.beginPath();
-        graphics.moveTo(cx, cy); 
+        graphics.moveTo(cx, cy);
         graphics.lineTo(cx + 400, cy - 400); // 우측 페어라인
         graphics.moveTo(cx, cy);
         graphics.lineTo(cx - 400, cy - 400); // 좌측 페어라인
@@ -141,17 +153,17 @@ export class BootScene extends Phaser.Scene {
 
         graphics.fillStyle(0xffffff);
         graphics.fillRect(cx - 10, cy - 123, 20, 6); // 투수판
-        graphics.fillPoints([{x: cx, y: cy + 8}, {x: cx + 6, y: cy}, {x: cx + 6, y: cy - 8}, {x: cx - 6, y: cy - 8}, {x: cx - 6, y: cy}], true); // 홈
-        
-        graphics.fillPoints([{x: cx + 120, y: cy - 115}, {x: cx + 125, y: cy - 120}, {x: cx + 120, y: cy - 125}, {x: cx + 115, y: cy - 120}], true); // 1루
-        graphics.fillPoints([{x: cx, y: cy - 235}, {x: cx + 5, y: cy - 240}, {x: cx, y: cy - 245}, {x: cx - 5, y: cy - 240}], true); // 2루
-        graphics.fillPoints([{x: cx - 120, y: cy - 115}, {x: cx - 115, y: cy - 120}, {x: cx - 120, y: cy - 125}, {x: cx - 125, y: cy - 120}], true); // 3루
-        
+        graphics.fillPoints([{ x: cx, y: cy + 8 }, { x: cx + 6, y: cy }, { x: cx + 6, y: cy - 8 }, { x: cx - 6, y: cy - 8 }, { x: cx - 6, y: cy }], true); // 홈
+
+        graphics.fillPoints([{ x: cx + 120, y: cy - 115 }, { x: cx + 125, y: cy - 120 }, { x: cx + 120, y: cy - 125 }, { x: cx + 115, y: cy - 120 }], true); // 1루
+        graphics.fillPoints([{ x: cx, y: cy - 235 }, { x: cx + 5, y: cy - 240 }, { x: cx, y: cy - 245 }, { x: cx - 5, y: cy - 240 }], true); // 2루
+        graphics.fillPoints([{ x: cx - 120, y: cy - 115 }, { x: cx - 115, y: cy - 120 }, { x: cx - 120, y: cy - 125 }, { x: cx - 125, y: cy - 120 }], true); // 3루
+
         graphics.generateTexture('stadium', w, h);
 
         // 1.5 백스톱(Backstop) 카메라 시점의 3D 원근감 경기장 추가
         const bgBack = this.make.graphics({ x: 0, y: 0, add: false });
-        
+
         // 🌌 하늘
         bgBack.fillStyle(0x4a90e2);
         bgBack.fillRect(0, 0, 1280, 180);
@@ -193,11 +205,11 @@ export class BootScene extends Phaser.Scene {
         bgBack.beginPath();
         bgBack.moveTo(0, 250); bgBack.lineTo(1280, 250); // 펜스 윗부분 라인
         bgBack.strokePath();
-        
+
         // 잔디밭
         bgBack.fillStyle(0x386641);
         bgBack.fillRect(0, 270, 1280, 450);
-        
+
         // 파울 라인 (아래에서 위로 모이는 원근감 적용)
         bgBack.lineStyle(4, 0xffffff);
         bgBack.beginPath();
@@ -207,15 +219,15 @@ export class BootScene extends Phaser.Scene {
 
         // 투수 마운드 및 발판 (작고 납작한 타원으로 원근감 표현)
         bgBack.fillStyle(0xbc4749);
-        bgBack.fillEllipse(640, 330, 200, 50); 
+        bgBack.fillEllipse(640, 330, 200, 50);
         bgBack.fillStyle(0xf2e8cf);
-        bgBack.fillRect(620, 324, 40, 6); 
+        bgBack.fillRect(620, 324, 40, 6);
 
         // 홈 플레이트 (화면 바로 앞이므로 아주 큼지막하게)
         bgBack.fillStyle(0xbc4749);
-        bgBack.fillEllipse(640, 650, 400, 100); 
+        bgBack.fillEllipse(640, 650, 400, 100);
         bgBack.fillStyle(0xf2e8cf);
-        bgBack.fillPoints([{x: 640, y: 670}, {x: 660, y: 655}, {x: 660, y: 635}, {x: 620, y: 635}, {x: 620, y: 655}], true);
+        bgBack.fillPoints([{ x: 640, y: 670 }, { x: 660, y: 655 }, { x: 660, y: 635 }, { x: 620, y: 635 }, { x: 620, y: 655 }], true);
 
         bgBack.generateTexture('stadium_backstop', 1280, 720);
 
@@ -228,7 +240,10 @@ export class BootScene extends Phaser.Scene {
             '5': '#A8DADC', // 은회색 (배트)
             '6': '#000000', // 검은색 (눈/입)
             '7': '#00FFFF', // 하늘색 (땀방울)
-            '8': '#8B4513'  // 갈색 (글러브/포수 미트)
+            '8': '#8B4513', // 갈색 (글러브/포수 미트)
+            '9': '#F4A261', // 주황색
+            'A': '#2A9D8F', // 청록색
+            'B': '#E9C46A'  // 노란색
             // '.'은 자동으로 투명 처리됩니다.
         };
 
@@ -294,6 +309,93 @@ export class BootScene extends Phaser.Scene {
             '...11..11...'
         ];
 
+        const citizen1_f1 = [
+            '....2222....',
+            '...226262...',
+            '...222222...',
+            '....2222....',
+            '..33333333..',
+            '.3333333333.',
+            '.33.3333.33.',
+            '.3..3333..3.',
+            '....4444....',
+            '....4444....',
+            '...44..44...',
+            '...44..44...'
+        ];
+        const citizen1_f2 = [
+            '....2222....',
+            '...226262...',
+            '...222222...',
+            '....2222....',
+            '..33333333..',
+            '.3333333333.',
+            '.33.3333.33.',
+            '.3..3333..3.',
+            '....4444....',
+            '....4444....',
+            '..44....44..',
+            '..44....44..'
+        ];
+
+        const citizen2_f1 = [
+            '....2222....',
+            '...226262...',
+            '...222222...',
+            '....2222....',
+            '..BBBBBBBB..',
+            '.BBBBBBBBBB.',
+            '.BB.BBBB.BB.',
+            '.B..BBBB..B.',
+            '....8888....',
+            '....8888....',
+            '...88..88...',
+            '...88..88...'
+        ];
+        const citizen2_f2 = [
+            '....2222....',
+            '...226262...',
+            '...222222...',
+            '....2222....',
+            '..BBBBBBBB..',
+            '.BBBBBBBBBB.',
+            '.BB.BBBB.BB.',
+            '.B..BBBB..B.',
+            '....8888....',
+            '....8888....',
+            '..88....88..',
+            '..88....88..'
+        ];
+
+        const citizen3_f1 = [
+            '....2222....',
+            '...226262...',
+            '...222222...',
+            '....2222....',
+            '..AAAAAAAA..',
+            '.AAAAAAAAAA.',
+            '.AA.AAAA.AA.',
+            '.A..AAAA..A.',
+            '....1111....',
+            '....1111....',
+            '...11..11...',
+            '...11..11...'
+        ];
+        const citizen3_f2 = [
+            '....2222....',
+            '...226262...',
+            '...222222...',
+            '....2222....',
+            '..AAAAAAAA..',
+            '.AAAAAAAAAA.',
+            '.AA.AAAA.AA.',
+            '.A..AAAA..A.',
+            '....1111....',
+            '....1111....',
+            '..11....11..',
+            '..11....11..'
+        ];
+
         const ballData = [
             '.11.',
             '1111',
@@ -325,6 +427,12 @@ export class BootScene extends Phaser.Scene {
         this.textures.generate('batter_action', { data: batterActionData, pixelWidth: 6, palette: palette });
         this.textures.generate('ball', { data: ballData, pixelWidth: 4, palette: palette });
         this.textures.generate('particle', { data: particleData, pixelWidth: 3, palette: palette });
+        this.textures.generate('citizen1_walk1', { data: citizen1_f1, pixelWidth: 4, palette: palette });
+        this.textures.generate('citizen1_walk2', { data: citizen1_f2, pixelWidth: 4, palette: palette });
+        this.textures.generate('citizen2_walk1', { data: citizen2_f1, pixelWidth: 4, palette: palette });
+        this.textures.generate('citizen2_walk2', { data: citizen2_f2, pixelWidth: 4, palette: palette });
+        this.textures.generate('citizen3_walk1', { data: citizen3_f1, pixelWidth: 4, palette: palette });
+        this.textures.generate('citizen3_walk2', { data: citizen3_f2, pixelWidth: 4, palette: palette });
         this.textures.generate('mitt', { data: mittData, pixelWidth: 6, palette: palette });
     }
 
@@ -362,9 +470,9 @@ export class BootScene extends Phaser.Scene {
         const bgmDuration = 3.2; // 3.2초 (1루프당 8개의 음표)
         const bgmBuffer = audioCtx.createBuffer(1, sampleRate * bgmDuration, sampleRate);
         const bgmData = bgmBuffer.getChannelData(0);
-        
+
         // C4, E4, G4, C5, G4, E4, D4, G3 (도, 미, 솔, 높은도, 솔, 미, 레, 낮은솔)
-        const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 196.00]; 
+        const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 196.00];
         const noteDuration = bgmDuration / notes.length;
 
         for (let i = 0; i < bgmBuffer.length; i++) {
@@ -381,6 +489,41 @@ export class BootScene extends Phaser.Scene {
     }
 
     create() {
+        // 기존 애니메이션이 있다면 HMR(핫리로드) 충돌 방지를 위해 제거
+        const animKeys = ['walk_down', 'walk_up', 'walk_left', 'walk_right'];
+        animKeys.forEach(key => {
+            if (this.anims.exists(key)) {
+                this.anims.remove(key);
+            }
+        });
+
+        // 정규화된 4x4 스프라이트시트 기반 4방향 걷기 애니메이션
+        // (첫 번째 줄: 앞(Down), 두 번째 줄: 뒤(Up), 세 번째 줄: 좌, 네 번째 줄: 우)
+        this.anims.create({
+            key: 'walk_down',
+            frames: this.anims.generateFrameNumbers('citizen', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'walk_up',
+            frames: this.anims.generateFrameNumbers('citizen', { start: 4, end: 7 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'walk_left',
+            frames: this.anims.generateFrameNumbers('citizen', { start: 8, end: 11 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'walk_right',
+            frames: this.anims.generateFrameNumbers('citizen', { start: 12, end: 15 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
         // 💾 전역 데이터 자동 저장 이벤트 등록 (어느 씬에서든 playerData가 갱신되면 발동)
         const savePlayerData = (parent, key, value) => {
             if (key === 'playerData') {

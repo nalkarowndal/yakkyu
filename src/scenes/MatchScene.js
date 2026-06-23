@@ -3,6 +3,9 @@ import { Ball } from '../entities/Ball';
 import { MatchSystem } from '../systems/MatchSystem';
 import { PITCH_TYPES, PITCH_LIST } from '../constants/PitchTypes';
 import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, BACK_VIEW, TOP_DOWN_VIEW, FIELDER_POSITIONS, PITCH_CLICK_AREA, SWING_CLICK_AREA, PITCH_BUTTON_LAYOUT, MATCH_UI } from '../constants/Layout';
+import { MatchUI } from '../systems/MatchUI';
+import { FielderManager } from '../systems/FielderManager';
+import { GameManager } from '../systems/GameManager';
 
 export class MatchScene extends Phaser.Scene {
     constructor() {
@@ -13,12 +16,9 @@ export class MatchScene extends Phaser.Scene {
         // 🌟 시점 전환 시 일괄적으로 투명도를 조절할 UI 요소들을 담는 배열
         this.uiElements = [];
 
-        // CreationScene에서 저장한 플레이어 데이터를 가져옵니다. (없으면 기본값)
-        this.playerData = this.registry.get('playerData') || {
-            name: '테스트선수',
-            role: 'batter',
-            stats: { power: 40, contact: 40, velocity: 40, stamina: 40, speed: 40, fielding: 40, control: 40, movement: 40 }
-        };
+                const gm = GameManager.getInstance();
+        gm.init(this.registry);
+        this.playerData = gm.getPlayerData();
 
         // 📊 개인 기록 통계 초기화
         this.personalStats = {
@@ -135,7 +135,7 @@ export class MatchScene extends Phaser.Scene {
         this.switchView('BACK', true);
 
         // 전광판 UI 생성
-        this.createScoreboard();
+        this.matchUI = new MatchUI(this); this.matchUI.createScoreboard();
 
         // 야구공 객체 생성
         this.ball = new Ball(this, this.moundPosition.x, this.moundPosition.y, 'ball');
@@ -238,7 +238,7 @@ export class MatchScene extends Phaser.Scene {
             this.homePlatePosition = { x: TOP_DOWN_VIEW.HOME_PLATE.x, y: TOP_DOWN_VIEW.HOME_PLATE.y };
 
             // 🌟 1600x1600 메가 텍스처를 좌표계에 맞게 배치 (TextureCenter(800,800) -> World(400,200) 에 둬야 HomePlate가 400,400에 일치함)
-            this.stadiumBg.setTexture('stadium').setPosition(TOP_DOWN_VIEW.STADIUM_POS.x, TOP_DOWN_VIEW.STADIUM_POS.y).setScale(1);
+            this.stadiumBg.setTexture('defense_field_bg').setPosition(CENTER_X, CENTER_Y).setScale(1);
 
             if (instant) {
                 this.pitcherSprite.setAlpha(0);
@@ -937,7 +937,7 @@ export class MatchScene extends Phaser.Scene {
             });
         this.uiElements.push(this.stealBtn);
 
-        this.refreshScoreboardUI();
+        if(this.matchUI) this.matchUI.refreshScoreboardUI();
 
         // 🌟 수비 위치 미니맵 UI 추가
         this.drawDefensivePosition();
@@ -1168,13 +1168,13 @@ export class MatchScene extends Phaser.Scene {
         // 9회 말 끝내기 승/패 발생 여부 확인
         if (this.checkWalkOff()) {
             this.isGameOver = true;
-            this.refreshScoreboardUI();
+            if(this.matchUI) this.matchUI.refreshScoreboardUI();
             this.time.delayedCall(1500, () => this.showMatchResult());
             return; // 3아웃 교대 등 진행 안 함
         }
 
         this.checkOutsAndSwap();
-        this.refreshScoreboardUI();
+        if(this.matchUI) this.matchUI.refreshScoreboardUI();
         
         this.plateAppearanceEnded = isPlateAppearanceEnded; // 타석 종료 여부 저장
 
@@ -1226,7 +1226,7 @@ export class MatchScene extends Phaser.Scene {
         // 볼넷 처리 후 게임 종료 여부 확인 및 공수 교대 스킵
         if (this.checkWalkOff()) {
             this.isGameOver = true;
-            this.refreshScoreboardUI();
+            if(this.matchUI) this.matchUI.refreshScoreboardUI();
             this.time.delayedCall(1500, () => this.showMatchResult());
             return;
         }
@@ -1234,7 +1234,7 @@ export class MatchScene extends Phaser.Scene {
         this.plateAppearanceEnded = true; // 볼넷 시 타석 완전 종료
 
         this.checkOutsAndSwap();
-        this.refreshScoreboardUI();
+        if(this.matchUI) this.matchUI.refreshScoreboardUI();
 
         // 볼넷으로 타석이 끝났으므로 새로운 AI 타자 등장
         if (this.playerData.role === 'pitcher' && !this.isGameOver) {
@@ -1337,7 +1337,7 @@ export class MatchScene extends Phaser.Scene {
         if (stolen) {
             this.playStealEffect(isSuccess);
             this.checkOutsAndSwap();
-            this.refreshScoreboardUI();
+            if(this.matchUI) this.matchUI.refreshScoreboardUI();
             
             // 다른 이벤트(타격 등)가 덮어쓰지 않으면 2초 후 메시지 제거
             this.time.delayedCall(2000, () => {
@@ -1403,7 +1403,7 @@ export class MatchScene extends Phaser.Scene {
         this.playerData.gold = (this.playerData.gold || 0) + goldReward;
         this.playerData.exp = (this.playerData.exp || 0) + expReward;
         this.playerData.currentMatchIndex = matchIndex + 1;
-        this.registry.set('playerData', this.playerData);
+        gm.savePlayerData(this.playerData);
 
         // 결과 연출 UI 생성
         // .setInteractive()를 추가하여 결과창이 떴을 때 뒤쪽의 게임 화면(마운드 등)이 클릭되는 것을 방지합니다.
@@ -1500,7 +1500,7 @@ export class MatchScene extends Phaser.Scene {
 
         // 포기 시에도 스케줄 진행
         this.playerData.currentMatchIndex = matchIndex + 1;
-        this.registry.set('playerData', this.playerData);
+        gm.savePlayerData(this.playerData);
 
         // 결과 연출 UI 생성
         this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.85).setDepth(3000).setInteractive();
@@ -2241,14 +2241,14 @@ export class MatchScene extends Phaser.Scene {
         // 9회말 끝내기 처리
         if (this.checkWalkOff()) {
             this.isGameOver = true;
-            this.refreshScoreboardUI();
+            if(this.matchUI) this.matchUI.refreshScoreboardUI();
             this.time.delayedCall(1500, () => this.showMatchResult());
             return;
         }
 
         const wasBottom = this.gameState.isBottom;
         this.checkOutsAndSwap();
-        this.refreshScoreboardUI();
+        if(this.matchUI) this.matchUI.refreshScoreboardUI();
 
         if (this.isGameOver) return;
 
@@ -2341,7 +2341,7 @@ export class MatchScene extends Phaser.Scene {
             }
         }
         
-        this.refreshScoreboardUI();
+        if(this.matchUI) this.matchUI.refreshScoreboardUI();
         this.time.delayedCall(2000, () => this.showMatchResult());
     }
 }

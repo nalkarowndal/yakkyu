@@ -34,29 +34,29 @@ export const BACK_VIEW = {
 
 // ─── MatchScene: 탑다운(수비) 시점 좌표 ───
 export const TOP_DOWN_VIEW = {
-    MOUND: { x: CENTER_X, y: 280 },
-    HOME_PLATE: { x: CENTER_X, y: 400 },
-    STADIUM_POS: { x: CENTER_X, y: 200 },
+    MOUND: { x: CENTER_X, y: 480 },
+    HOME_PLATE: { x: CENTER_X, y: 650 },
+    STADIUM_POS: { x: CENTER_X, y: 360 },
     CAMERA_BOUNDS: { x: -400, y: -600, width: 2080, height: 1920 },
-    CAMERA_ZOOM: 1.2,
+    CAMERA_ZOOM: 1,
     // 베이스 좌표 (다이아몬드)
     BASES: {
-        HOME:   { x: CENTER_X, y: 400 },
-        FIRST:  { x: CENTER_X + 160, y: 240 },
-        SECOND: { x: CENTER_X, y: 80 },
-        THIRD:  { x: CENTER_X - 160, y: 240 },
+        HOME:   { x: CENTER_X, y: 650 },
+        FIRST:  { x: CENTER_X + 320, y: 480 },
+        SECOND: { x: CENTER_X, y: 310 },
+        THIRD:  { x: CENTER_X - 320, y: 480 },
     }
 };
 
 // ─── MatchScene: 수비수(야수) 기본 좌표 ───
 export const FIELDER_POSITIONS = [
-    { x: 770, y: 340, role: '1B', name: '1루수' },
-    { x: 690, y: 240, role: '2B', name: '2루수' },
-    { x: 510, y: 340, role: '3B', name: '3루수' },
-    { x: 590, y: 240, role: 'SS', name: '유격수' },
-    { x: 440, y: 80,  role: 'LF', name: '좌익수' },
-    { x: CENTER_X, y: 20,  role: 'CF', name: '중견수' },
-    { x: 840, y: 80,  role: 'RF', name: '우익수' }
+    { x: 960 + 20, y: 480 - 20, role: '1B', name: '1루수' },
+    { x: 800, y: 395, role: '2B', name: '2루수' },
+    { x: 320 - 20, y: 480 - 20, role: '3B', name: '3루수' },
+    { x: 480, y: 395, role: 'SS', name: '유격수' },
+    { x: 300, y: 150,  role: 'LF', name: '좌익수' },
+    { x: CENTER_X, y: 100,  role: 'CF', name: '중견수' },
+    { x: 980, y: 150,  role: 'RF', name: '우익수' }
 ];
 
 // ─── MatchScene: 투구 클릭 허용 영역 ───
@@ -98,7 +98,7 @@ export const MATCH_UI = {
     // 투수 대시보드
     PITCHER_DASHBOARD: { x: 1000, y: 480 },
     // 미니맵
-    MINIMAP: { x: GAME_WIDTH - 100, y: 80 },
+    MINIMAP: { x: GAME_WIDTH - 90, y: 120 },
 };
 
 // ─── DialogSystem: 대화창 위치 ───

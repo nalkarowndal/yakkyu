@@ -163,19 +163,23 @@ export class Ball extends Phaser.Physics.Arcade.Sprite {
     }
 
     // 타격 성공 시 타구 궤적 처리
-    hit(power, angle) {
+    hit(landingX, landingY, power) {
         this.isPitched = false;
         if (this.trailTimer) this.trailTimer.remove();
         this.scene.tweens.killTweensOf(this); // 날아오던 투구 애니메이션 정지
         
-        // 타격 속도 제한 (최대 1500으로 클램프하여 공이 화면 밖으로 순식간에 사라지는 현상 방지)
-        const hitVelocity = Math.min(power * 10, 1500);
-        this.scene.physics.velocityFromAngle(angle, hitVelocity, this.body.velocity);
+        // 더 이상 물리 엔진 속도를 사용하지 않고 Tween으로 목적지까지 직접 이동시킵니다 (중구난방 날아가는 현상 해결)
+        this.scene.physics.world.disable(this);
+        
+        // 체공 시간: 파워가 강할수록 (멀리 갈수록) 오래 떠 있음
+        const duration = Math.max(1000, power * 35);
         
         this.scene.tweens.add({
             targets: this,
+            x: landingX,
+            y: landingY,
             scale: 0.2, // 멀리 날아가며 작아짐
-            duration: 2000,
+            duration: duration,
             ease: 'Quad.easeOut',
             onUpdate: () => {
                 this.shadow.setPosition(this.x, this.y + (20 * this.scale));
