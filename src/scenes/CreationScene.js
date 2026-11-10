@@ -85,16 +85,19 @@ export class CreationScene extends Phaser.Scene {
     this.uiContainer.style.top = '50%';
     this.uiContainer.style.left = '50%';
     this.uiContainer.style.transform = 'translate(-50%, -50%)';
-    this.uiContainer.style.width = '800px';
+    this.uiContainer.style.width = 'min(800px, calc(100vw - 24px))';
+    this.uiContainer.style.boxSizing = 'border-box';
+    this.uiContainer.style.maxHeight = 'calc(100vh - 24px)';
+    this.uiContainer.style.overflowY = 'auto';
     this.uiContainer.style.backgroundColor = 'rgba(13, 27, 42, 0.9)';
     this.uiContainer.style.border = '2px solid #00b4d8';
     this.uiContainer.style.borderRadius = '15px';
-    this.uiContainer.style.padding = '30px';
+    this.uiContainer.style.padding = 'clamp(12px, 3vw, 30px)';
     this.uiContainer.style.color = '#fff';
     this.uiContainer.style.fontFamily = 'sans-serif';
     this.uiContainer.style.display = 'flex';
     this.uiContainer.style.flexDirection = 'column';
-    this.uiContainer.style.gap = '20px';
+    this.uiContainer.style.gap = 'clamp(8px, 2vw, 20px)';
     this.uiContainer.style.boxShadow = '0px 10px 30px rgba(0,0,0,0.5)';
 
     // game-container가 없으면 문서의 기본 body에 UI를 부착하도록 안전하게 변경
@@ -155,8 +158,8 @@ export class CreationScene extends Phaser.Scene {
     const headerDiv = document.createElement('div');
     headerDiv.innerHTML = `
       <h2 style="margin:0 0 15px 0; color: #ccff00; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">나만의 선수 생성</h2>
-      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input type="text" id="playerName" placeholder="선수 이름 입력" value="${this.playerName}" style="flex:1; padding: 10px; font-size: 16px;">
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+        <input type="text" id="playerName" placeholder="선수 이름 입력" style="flex:1; padding: 10px; font-size: 16px;">
         <select id="playerTeam" style="padding: 10px; font-size: 16px;">
           ${teamOptions}
         </select>
@@ -168,6 +171,9 @@ export class CreationScene extends Phaser.Scene {
       </div>
     `;
     this.uiContainer.appendChild(headerDiv);
+
+    // Keep user input out of HTML templates; retain it safely across re-renders.
+    this.uiContainer.querySelector('#playerName').value = this.playerName;
 
     // 이벤트 리스너 부착 (이름, 역할)
     this.uiContainer.querySelector('#playerName').addEventListener('input', (e) => {

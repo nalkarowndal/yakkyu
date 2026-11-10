@@ -6,6 +6,7 @@ import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, BACK_VIEW, TOP_DOWN_VIEW, 
 import { MatchUI } from '../systems/MatchUI';
 import { calculateLandingPoint } from '../systems/FieldGeometry';
 import { getTeamResult } from '../systems/MatchOutcome';
+import { isWalkOff, endsAfterTopOfNinth } from '../systems/GameRules';
 import { FielderManager } from '../systems/FielderManager';
 import { GameManager } from '../systems/GameManager';
 
@@ -77,6 +78,7 @@ export class MatchScene extends Phaser.Scene {
 
         // 게임 종료 여부 플래그
         this.isGameOver = false;
+        this.matchFinalized = false;
 
         const roleText = this.playerData.position || (this.playerData.role === 'batter' ? '타자' : '투수');
         this.roleTextObj = this.add.text(MATCH_UI.ROLE_TEXT.x, MATCH_UI.ROLE_TEXT.y, `[ ${this.playerData.name} - ${roleText} ]`, { fontSize: '14px', fill: '#ccc', fontStyle: 'bold', backgroundColor: '#00000088', padding: { x: 10, y: 5 } }).setOrigin(1, 0.5);
@@ -1246,13 +1248,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     checkWalkOff() {
-        // 9회 말 공격팀이 점수를 역전하는 순간 즉시 끝내기로 처리합니다.
-        if (this.gameState.inning >= 9 && this.gameState.isBottom) {
-            const isBatter = this.playerData.role === 'batter';
-            if (isBatter && this.gameState.scorePlayer > this.gameState.scoreAI) return true; // 플레이어의 끝내기 승리
-            if (!isBatter && this.gameState.scoreAI > this.gameState.scorePlayer) return true; // AI의 끝내기 역전승 (플레이어 패배)
-        }
-        return false;
+        return isWalkOff(this.gameState);
     }
 
     checkOutsAndSwap() {
@@ -1266,6 +1262,13 @@ export class MatchScene extends Phaser.Scene {
                     this.time.delayedCall(1500, () => this.showMatchResult());
                     return;
                 }
+            }
+
+            // Home teams that lead after the top of the ninth do not bat again.
+            if (endsAfterTopOfNinth(this.gameState)) {
+                this.isGameOver = true;
+                this.time.delayedCall(1500, () => this.showMatchResult());
+                return;
             }
 
             // 9회 말 이후 3아웃: 동점이면 연장전 진입, 아니면 경기 종료
@@ -1349,6 +1352,10 @@ export class MatchScene extends Phaser.Scene {
     }
 
     showMatchResult() {
+        if (this.matchFinalized) return;
+        this.matchFinalized = true;
+        this.isGameOver = true;
+
         let goldReward = 0;
         let expReward = 0;
         let title = '';
@@ -1489,6 +1496,8 @@ export class MatchScene extends Phaser.Scene {
     }
 
     forfeitMatch() {
+        if (this.matchFinalized) return;
+        this.matchFinalized = true;
         this.isGameOver = true;
         
         const matchIndex = this.playerData.currentMatchIndex || 0;

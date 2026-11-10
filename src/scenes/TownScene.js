@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DialogSystem } from '../systems/DialogSystem';
-import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, TOWN_BOUNDS } from '../constants/Layout';
+import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, TOWN_BOUNDS, TOWN_HOTSPOTS } from '../constants/Layout';
 import { GameManager } from '../systems/GameManager';
 
 export class TownScene extends Phaser.Scene {
@@ -81,7 +81,7 @@ export class TownScene extends Phaser.Scene {
         this.dialogSystem = new DialogSystem(this);
 
         // 🏋️ 훈련소 (좌측 하단) - 파라미터에서 이모티콘 제거
-        this.createCuteVillageBuilding(250, 650, 150, 130, 'gym', '훈련소', () => {
+        this.createCuteVillageBuilding(TOWN_HOTSPOTS.TRAINING.x, TOWN_HOTSPOTS.TRAINING.y, TOWN_HOTSPOTS.TRAINING.width, TOWN_HOTSPOTS.TRAINING.height, 'gym', '훈련소', () => {
             if (this.dialogSystem.isShowing) return; // 이미 대화 중이면 무시
 
             this.dialogSystem.show([
@@ -118,7 +118,7 @@ export class TownScene extends Phaser.Scene {
         });
 
         // 🛒 쇼핑몰/상점 (우측 하단)
-        this.createCuteVillageBuilding(1150, 550, 150, 130, 'shop', '쇼핑몰', () => {
+        this.createCuteVillageBuilding(TOWN_HOTSPOTS.SHOP.x, TOWN_HOTSPOTS.SHOP.y, TOWN_HOTSPOTS.SHOP.width, TOWN_HOTSPOTS.SHOP.height, 'shop', '쇼핑몰', () => {
             if (this.dialogSystem.isShowing) return;
 
             this.dialogSystem.show([
@@ -130,7 +130,7 @@ export class TownScene extends Phaser.Scene {
         });
 
         // 🏟️ 메인 경기장 (중앙)
-        this.createCuteVillageBuilding(950, 250, 220, 180, 'stadium', '경기장', () => {
+        this.createCuteVillageBuilding(TOWN_HOTSPOTS.STADIUM.x, TOWN_HOTSPOTS.STADIUM.y, TOWN_HOTSPOTS.STADIUM.width, TOWN_HOTSPOTS.STADIUM.height, 'stadium', '경기장', () => {
             if (matchIndex >= totalMatches) {
                 alert('이번 시즌의 모든 정규 경기를 마쳤습니다!');
                 return;

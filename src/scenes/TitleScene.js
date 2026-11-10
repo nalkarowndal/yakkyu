@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { parseSavedPlayer } from '../systems/SaveData';
 
 export class TitleScene extends Phaser.Scene {
     constructor() {
@@ -15,7 +16,18 @@ export class TitleScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // 💾 로컬 스토리지에 저장된 데이터 확인
-        const savedData = localStorage.getItem('baseball_rpg_save');
+        let savedData = null;
+        try {
+            savedData = localStorage.getItem('baseball_rpg_save');
+        } catch (error) {
+            console.warn('[SaveData] 로컬 저장소에 접근할 수 없습니다.', error);
+        }
+        const savedPlayer = parseSavedPlayer(savedData);
+        if (savedData && !savedPlayer) {
+            this.add.text(640, 620, '저장 파일이 손상되었거나 지원되지 않습니다. 새 게임을 시작할 수 있습니다.', {
+                fontSize: '17px', fill: '#ffaaaa'
+            }).setOrigin(0.5);
+        }
 
         // [ 새로 하기 ] 버튼
         const startBtn = this.add.text(640, 450, '[ 새로 하기 ]', {
@@ -33,27 +45,18 @@ export class TitleScene extends Phaser.Scene {
 
         // [ 이어 하기 ] 버튼
         const loadBtn = this.add.text(640, 550, '[ 이어 하기 ]', {
-            fontSize: '36px', fill: savedData ? '#ffffff' : '#555555', backgroundColor: '#16213e', padding: { x: 20, y: 10 }
+            fontSize: '36px', fill: savedPlayer ? '#ffffff' : '#555555', backgroundColor: '#16213e', padding: { x: 20, y: 10 }
         }).setOrigin(0.5);
 
         // 저장된 데이터가 있을 때만 클릭 가능
-        if (savedData) {
+        if (savedPlayer) {
             loadBtn.setInteractive({ useHandCursor: true });
             loadBtn.on('pointerover', () => loadBtn.setStyle({ fill: '#00ffcc' }));
             loadBtn.on('pointerout', () => loadBtn.setStyle({ fill: '#ffffff' }));
             loadBtn.on('pointerdown', () => {
-                try {
-                    const pd = JSON.parse(savedData);
-                    
-                    // 불러온 데이터를 레지스트리에 등록
-                    this.registry.set('playerData', pd);
-                    
-                    // 생성 화면을 건너뛰고 마을로 바로 이동
-                    this.scene.start('TownScene'); 
-                } catch (e) {
-                    alert('저장된 데이터를 불러오는 중 오류가 발생했습니다.');
-                    console.error(e);
-                }
+                // The saved player has already been parsed and normalized.
+                this.registry.set('playerData', savedPlayer);
+                this.scene.start('TownScene');
             });
         }
     }

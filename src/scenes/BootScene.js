@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { writePlayerSave } from '../systems/SaveData';
 
 export class BootScene extends Phaser.Scene {
     constructor() {
@@ -527,7 +528,7 @@ export class BootScene extends Phaser.Scene {
         // 💾 전역 데이터 자동 저장 이벤트 등록 (어느 씬에서든 playerData가 갱신되면 발동)
         const savePlayerData = (parent, key, value) => {
             if (key === 'playerData') {
-                localStorage.setItem('baseball_rpg_save', JSON.stringify(value));
+                if (!writePlayerSave(value)) console.warn('[SaveData] 로컬 저장에 실패했습니다. 브라우저 저장소 접근 권한을 확인하세요.');
             }
         };
         this.registry.events.on('setdata', savePlayerData);
