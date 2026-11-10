@@ -156,7 +156,7 @@ export class CreationScene extends Phaser.Scene {
     headerDiv.innerHTML = `
       <h2 style="margin:0 0 15px 0; color: #ccff00; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">나만의 선수 생성</h2>
       <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input type="text" id="playerName" placeholder="선수 이름 입력" value="${this.playerName}" style="flex:1; padding: 10px; font-size: 16px;">
+        <input type="text" id="playerName" placeholder="선수 이름 입력" style="flex:1; padding: 10px; font-size: 16px;">
         <select id="playerTeam" style="padding: 10px; font-size: 16px;">
           ${teamOptions}
         </select>
@@ -168,6 +168,9 @@ export class CreationScene extends Phaser.Scene {
       </div>
     `;
     this.uiContainer.appendChild(headerDiv);
+
+    // Keep user input out of HTML templates; retain it safely across re-renders.
+    this.uiContainer.querySelector('#playerName').value = this.playerName;
 
     // 이벤트 리스너 부착 (이름, 역할)
     this.uiContainer.querySelector('#playerName').addEventListener('input', (e) => {
