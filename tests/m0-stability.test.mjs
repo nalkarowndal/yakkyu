@@ -45,7 +45,7 @@ test('M0: the hit animation passes coordinates and power in Ball.hit order', () 
 test('M0: steal button and scoreboard follow game state', () => {
   // Legacy MatchScene scoreboard helpers are unused; assert on the active steal handler.
   const stealHandler = scene.split('    attemptSteal() {')[1].split('    showMatchResult() {')[0];
-  assert.doesNotMatch(stealHandler, /this\\.stealBtn\\./);
+  assert.doesNotMatch(stealHandler, /this\.stealBtn\./);
   assert.match(scene, /this\.matchUI\.stealBtn\.setVisible\(false\)/);
   assert.match(matchUI, /const isTop = !gs\.isBottom/);
   assert.match(matchUI, /gs\.bases\.some\(Boolean\)/);
