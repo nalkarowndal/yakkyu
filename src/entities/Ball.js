@@ -33,7 +33,10 @@ export class Ball extends Phaser.Physics.Arcade.Sprite {
      * @param {function} onCompleteCallback - 포수 미트에 닿았을 때 실행할 콜백 (타격 판정 종료)
      */
     pitch(startX, startY, targetX, targetY, speedVal, pitchData, onCompleteCallback) {
+        // A previous batted ball disables Arcade physics; restore it before the next pitch.
+        this.scene.physics.world.enable(this);
         this.setPosition(startX, startY);
+        if (this.body) this.body.setVelocity(0, 0);
         this.setScale(0.3);
         this.setAlpha(1);
         this.isPitched = true;

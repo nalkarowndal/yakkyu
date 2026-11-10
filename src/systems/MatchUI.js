@@ -95,8 +95,8 @@ export class MatchUI {
     refreshScoreboardUI() {
         if (!this.inningText || !this.scene.gameState) return;
         const gs = this.scene.gameState;
-        const isTop = gs.inning % 2 !== 0;
-        const currentInning = Math.ceil(gs.inning / 2);
+        const isTop = !gs.isBottom;
+        const currentInning = gs.inning;
         this.inningText.setText(`${currentInning}회\n${isTop ? '초' : '말'}`);
 
         const playerTeamName = (this.scene.playerData && this.scene.playerData.team) ? this.scene.playerData.team : '우리팀';
@@ -129,8 +129,9 @@ export class MatchUI {
         });
         
         if (this.stealBtn) {
-            const hasRunners = gs.bases.some(b => b !== null);
-            this.stealBtn.setVisible(hasRunners && !this.scene.isPitching);
+            const hasRunners = gs.bases.some(Boolean);
+            const isPlayerBatting = this.scene.playerData?.role === 'batter' && gs.isBottom;
+            this.stealBtn.setVisible(hasRunners && isPlayerBatting && !this.scene.isPitching && !this.scene.isGameOver && this.scene.currentView === 'BACK');
         }
     }
 }

@@ -4,6 +4,8 @@ import { MatchSystem } from '../systems/MatchSystem';
 import { PITCH_TYPES, PITCH_LIST } from '../constants/PitchTypes';
 import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, BACK_VIEW, TOP_DOWN_VIEW, FIELDER_POSITIONS, PITCH_CLICK_AREA, SWING_CLICK_AREA, PITCH_BUTTON_LAYOUT, MATCH_UI } from '../constants/Layout';
 import { MatchUI } from '../systems/MatchUI';
+import { calculateLandingPoint } from '../systems/FieldGeometry';
+import { getTeamResult } from '../systems/MatchOutcome';
 import { FielderManager } from '../systems/FielderManager';
 import { GameManager } from '../systems/GameManager';
 
@@ -16,9 +18,9 @@ export class MatchScene extends Phaser.Scene {
         // 🌟 시점 전환 시 일괄적으로 투명도를 조절할 UI 요소들을 담는 배열
         this.uiElements = [];
 
-                const gm = GameManager.getInstance();
-        gm.init(this.registry);
-        this.playerData = gm.getPlayerData();
+        this.gameManager = GameManager.getInstance();
+        this.gameManager.init(this.registry);
+        this.playerData = this.gameManager.getPlayerData();
 
         // 📊 개인 기록 통계 초기화
         this.personalStats = {
@@ -410,7 +412,7 @@ export class MatchScene extends Phaser.Scene {
             this.statusText.setText(`투구했습니다! (구종: ${randomPitch.name})`);
             this.isPitching = true;
             this.ball.setVisible(true);
-            if (this.stealBtn) this.stealBtn.setVisible(false); // 투구 중 도루 버튼 숨김
+            if (this.matchUI?.stealBtn) this.matchUI.stealBtn.setVisible(false); // 투구 중 도루 버튼 숨김
             this.pitchStartTime = this.time.now;
 
             // 구속 50 기준 기본 도달 시간 계산 후 구종별 배율 적용
@@ -1295,7 +1297,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     attemptSteal() {
-        this.stealBtn.setVisible(false);
+        this.matchUI.stealBtn.setVisible(false);
         
         // 주력 스탯을 기반으로 도루 확률 계산 (기본 스탯 40 기준 약 65% 성공률)
         const speed = this.playerData.stats?.speed || 40;
@@ -1395,15 +1397,15 @@ export class MatchScene extends Phaser.Scene {
         const day = startDate.getDate();
         
         // 📊 리그 전체 순위/승패 업데이트
-        if (isWin) this.updateLeagueStandings('win');
-        else if (isDraw) this.updateLeagueStandings('draw');
-        else this.updateLeagueStandings('loss');
+        // League results depend on the final team score, not on a player's mission reward.
+        const teamResult = getTeamResult(this.gameState.scorePlayer, this.gameState.scoreAI);
+        this.updateLeagueStandings(teamResult);
 
         // 데이터 갱신 (전역 레지스트리에 보상 및 스케줄 진척도 누적)
         this.playerData.gold = (this.playerData.gold || 0) + goldReward;
         this.playerData.exp = (this.playerData.exp || 0) + expReward;
         this.playerData.currentMatchIndex = matchIndex + 1;
-        gm.savePlayerData(this.playerData);
+        this.gameManager.savePlayerData(this.playerData);
 
         // 결과 연출 UI 생성
         // .setInteractive()를 추가하여 결과창이 떴을 때 뒤쪽의 게임 화면(마운드 등)이 클릭되는 것을 방지합니다.
@@ -1500,7 +1502,7 @@ export class MatchScene extends Phaser.Scene {
 
         // 포기 시에도 스케줄 진행
         this.playerData.currentMatchIndex = matchIndex + 1;
-        gm.savePlayerData(this.playerData);
+        this.gameManager.savePlayerData(this.playerData);
 
         // 결과 연출 UI 생성
         this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.85).setDepth(3000).setInteractive();
@@ -1685,7 +1687,7 @@ export class MatchScene extends Phaser.Scene {
             });
 
             // 🏃 홈런 시 다이아몬드 베이스 런닝 애니메이션
-            const runnerContainer = this.add.container(640, 400).setDepth(5);
+            const runnerContainer = this.add.container(TOP_DOWN_VIEW.BASES.HOME.x, TOP_DOWN_VIEW.BASES.HOME.y).setDepth(5);
             // 기존 타자 이미지를 절반(0.5) 크기로 줄여 미니 주자로 활용
             const runnerSprite = this.add.sprite(0, 0, 'batter').setScale(0.5).setOrigin(0.5, 1);
             runnerContainer.add(runnerSprite);
@@ -1704,10 +1706,10 @@ export class MatchScene extends Phaser.Scene {
             this.tweens.chain({
                 targets: runnerContainer,
                 tweens: [
-                    { x: 800, y: 240, duration: 1000 }, // 1루 (640+160, 400-160)
-                    { x: 640, y: 80, duration: 1000 }, // 2루
-                    { x: 480, y: 240, duration: 1000 }, // 3루
-                    { x: 640, y: 400, duration: 1000 }  // 홈인
+                    { ...TOP_DOWN_VIEW.BASES.FIRST, duration: 1000 },
+                    { ...TOP_DOWN_VIEW.BASES.SECOND, duration: 1000 },
+                    { ...TOP_DOWN_VIEW.BASES.THIRD, duration: 1000 },
+                    { ...TOP_DOWN_VIEW.BASES.HOME, duration: 1000 }
                 ],
                 onComplete: () => runnerContainer.destroy() // 베이스를 다 돌면 삭제
             });
@@ -1773,8 +1775,9 @@ export class MatchScene extends Phaser.Scene {
         // 🌟 3. 타격 임팩트 파티클 고도화 (방향성 부채꼴 스파크)
         this.playDirectionalSparks(impactX, impactY - 20, hitAngle, hitPower);
 
-        // 공 물리 궤적(Ball.hit) 호출
-        this.ball.hit(hitPower, hitAngle);
+        // Use the same world-space landing point for the visible ball and defensive AI.
+        const { x: ballDestX, y: ballDestY } = calculateLandingPoint(this.homePlatePosition, hitPower, hitAngle);
+        this.ball.hit(ballDestX, ballDestY, hitPower);
 
         // 🏃 야수들이 타구를 향해 일제히 달려가는 쫓아가기 애니메이션
         // 🏃 픽셀 주자(Runner) 리드 및 진루 애니메이션
@@ -1784,11 +1787,11 @@ export class MatchScene extends Phaser.Scene {
         this.runnerSprites = [];
 
         const baseCoords = [
-            { x: 640, y: 400 }, // 0: Home
-            { x: 800, y: 240 }, // 1: 1B
-            { x: 640, y: 80 }, // 2: 2B
-            { x: 480, y: 240 }, // 3: 3B
-            { x: 640, y: 400 }  // 4: Home (End)
+            TOP_DOWN_VIEW.BASES.HOME,
+            TOP_DOWN_VIEW.BASES.FIRST,
+            TOP_DOWN_VIEW.BASES.SECOND,
+            TOP_DOWN_VIEW.BASES.THIRD,
+            TOP_DOWN_VIEW.BASES.HOME
         ];
 
         const activeRunners = [{ from: 0 }]; // 타자 본인
@@ -1871,9 +1874,7 @@ export class MatchScene extends Phaser.Scene {
         const rad = Phaser.Math.DegToRad(hitAngle);
         
         // 타구의 체공/구르는 거리를 예측
-        const ballDistance = Math.min(800, hitPower * 12); 
-        const ballDestX = this.homePlatePosition.x + Math.cos(rad) * ballDistance; 
-        const ballDestY = this.homePlatePosition.y + Math.sin(rad) * ballDistance;
+        // ballDestX / ballDestY are calculated once above and shared with the fielders.
 
         const isGroundball = resultText.includes('땅볼') || resultText.includes('안타');
         const isFlyball = resultText.includes('홈런') || resultText.includes('2루타') || resultText.includes('3루타') || resultText.includes('파울');
@@ -1889,9 +1890,9 @@ export class MatchScene extends Phaser.Scene {
         const backupFielder = sortedFielders[1].sprite;
         
         // 송구 타겟 베이스 (기본적으로 1루)
-        const base1 = { x: 800, y: 240 };
-        const base2 = { x: 640, y: 80 };
-        const base3 = { x: 480, y: 240 };
+        const base1 = TOP_DOWN_VIEW.BASES.FIRST;
+        const base2 = TOP_DOWN_VIEW.BASES.SECOND;
+        const base3 = TOP_DOWN_VIEW.BASES.THIRD;
 
         this.fielders.forEach((fielder) => {
             const reactionTime = Phaser.Math.Between(0, 150); // 반응 속도 0~0.15초
