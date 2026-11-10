@@ -116,6 +116,22 @@ try {
     }
     {
         const errors = [];
+        const context = await createContext({width:1280,height:720});
+        const page = await loadPage(context,errors);
+        await page.evaluate(() => localStorage.setItem('baseball_rpg_save', '{invalid-json'));
+        await page.reload({waitUntil:'domcontentloaded'});
+        await page.waitForTimeout(500);
+        await inspect(page,'corrupt-save-title');
+        await clickGame(page,640,550); // disabled continue must not enter a broken scene
+        assert.equal(await page.locator('#creation-ui').count(),0);
+        page.on('dialog', dialog => dialog.accept()); // new game confirmation
+        await clickGame(page,640,450);
+        await page.locator('#creation-ui').waitFor({timeout:10000});
+        assert.deepEqual(errors,[],'Corrupted save must not cause a browser error');
+        await context.close();
+    }
+    {
+        const errors = [];
         const context = await createContext({width:390,height:844});
         const page = await loadPage(context,errors);
         await clickGame(page,640,450);
@@ -126,6 +142,12 @@ try {
             return {left:r.left,right:r.right,width:innerWidth};
         });
         assert.ok(rect.left >= -1 && rect.right <= rect.width+1, 'Mobile creation UI overflows viewport: '+JSON.stringify(rect));
+        await page.locator('#playerName').fill('M0 모바일');
+        await page.locator('.pitch-label').first().click();
+        await page.locator('.start-btn').scrollIntoViewIfNeeded();
+        await page.locator('.start-btn').click();
+        await page.locator('#creation-ui').waitFor({state:'detached',timeout:10000});
+        await inspect(page,'mobile-town');
         assert.deepEqual(errors,[],'Console and network errors on mobile');
         await context.close();
     }
