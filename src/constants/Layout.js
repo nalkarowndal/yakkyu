@@ -94,6 +94,7 @@ export const MATCH_UI = {
     MUTE_BTN: { x: GAME_WIDTH - 110, y: 20 },
     // 스코어보드
     SCOREBOARD: { x: 20, y: 20 },
+    SCOREBOARD_LAYOUT: { width: 570, inningX: 40, teamX: 210, countX: 375, baseX: 505 },
     STEAL_BTN: { x: 20, y: 85 },
     // 투수 대시보드
     PITCHER_DASHBOARD: { x: 1000, y: 480 },
@@ -108,6 +109,13 @@ export const DIALOG_UI = {
     PORTRAIT: { x: CENTER_X - 340, y: 560 },
     NAME_TEXT: { x: CENTER_X - 270, y: 470 },
     DIALOGUE_TEXT: { x: CENTER_X - 270, y: 510, wordWrapWidth: 650 },
+};
+
+// ─── TownScene: illustration-aligned interactive targets ───
+export const TOWN_HOTSPOTS = {
+    STADIUM: { x: 365, y: 390, width: 430, height: 330 },
+    SHOP: { x: 950, y: 220, width: 270, height: 180 },
+    TRAINING: { x: 1020, y: 575, width: 200, height: 130 }
 };
 
 // ─── TownScene: 이동 범위 ───

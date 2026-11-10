@@ -1,3 +1,5 @@
+import { MATCH_UI } from '../constants/Layout';
+
 export class MatchUI {
     constructor(scene) {
         this.scene = scene;
@@ -12,25 +14,24 @@ export class MatchUI {
     }
 
     createScoreboard() {
-        this.scoreboardContainer = this.scene.add.container(20, 20).setDepth(40);
-        if (this.scene.uiElements) {
-            this.scene.uiElements.push(this.scoreboardContainer);
-        }
+        const layout = MATCH_UI.SCOREBOARD_LAYOUT;
+        // The scoreboard must remain visible during top-down fielding simulations.
+        this.scoreboardContainer = this.scene.add.container(MATCH_UI.SCOREBOARD.x, MATCH_UI.SCOREBOARD.y).setDepth(40);
 
         const bg = this.scene.add.graphics();
         bg.fillGradientStyle(0x1a1a2e, 0x1a1a2e, 0x0f3460, 0x0f3460, 0.95, 0.95, 0.85, 0.85);
-        bg.fillRoundedRect(0, 0, 420, 60, 10);
+        bg.fillRoundedRect(0, 0, layout.width, 60, 10);
         bg.lineStyle(2, 0xe94560, 0.8);
-        bg.strokeRoundedRect(0, 0, 420, 60, 10);
+        bg.strokeRoundedRect(0, 0, layout.width, 60, 10);
         
         const inningBg = this.scene.add.graphics();
         inningBg.fillStyle(0xe94560, 0.9);
         inningBg.fillRoundedRect(10, 10, 60, 40, 5);
-        this.inningText = this.scene.add.text(40, 30, '', { fontSize: '16px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+        this.inningText = this.scene.add.text(layout.inningX, 30, '', { fontSize: '16px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
         
-        this.scoreText = this.scene.add.text(160, 30, '', { fontSize: '22px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
+        this.scoreText = this.scene.add.text(layout.teamX, 30, '', { fontSize: '20px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
         
-        const countStartX = 280;
+        const countStartX = layout.countX;
         const startYOffset = 15;
         const bLabel = this.scene.add.text(countStartX, startYOffset, 'B', { fontSize: '13px', fill: '#00ff00', fontStyle: 'bold' }).setOrigin(0.5);
         const sLabel = this.scene.add.text(countStartX, startYOffset + 15, 'S', { fontSize: '13px', fill: '#ffff00', fontStyle: 'bold' }).setOrigin(0.5);
@@ -56,7 +57,7 @@ export class MatchUI {
             createLed(countStartX + 50, startYOffset + 30)
         ];
         
-        const baseX = 380;
+        const baseX = layout.baseX;
         const baseY = 30;
         const baseGraphics = this.scene.add.graphics();
         baseGraphics.lineStyle(2, 0x555555);
@@ -109,7 +110,8 @@ export class MatchUI {
         const aiScore = gs.scoreAI || 0;
 
         // 플레이어 역할에 따라 공격/수비 여부 판단
-        const teamStr = `${playerTeamName} ${pScore} : ${aiScore} ${opponentTeamName}`;
+        const shortName = name => name.split(' ')[0];
+        const teamStr = `${shortName(playerTeamName)} ${pScore} : ${aiScore} ${shortName(opponentTeamName)}`;
         this.scoreText.setText(teamStr);
 
         this.ballLights.forEach((light, index) => {
