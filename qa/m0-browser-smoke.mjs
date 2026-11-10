@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { TOWN_HOTSPOTS } from '../src/constants/Layout.js';
 
 await mkdir('qa-artifacts', { recursive: true });
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], {
@@ -72,7 +73,7 @@ try {
         await inspect(page,'desktop-title');
         await createPlayer(page,'pitcher','M0 투수');
         await inspect(page,'desktop-town');
-        await clickGame(page,950,250); // town -> match
+        await clickGame(page,TOWN_HOTSPOTS.STADIUM.x,TOWN_HOTSPOTS.STADIUM.y); // town -> match
         await page.waitForTimeout(1000);
         await inspect(page,'desktop-pitcher-match');
         await clickGame(page,1230,20); // exit
@@ -107,7 +108,7 @@ try {
         await page.locator('.start-btn').click();
         await page.locator('#creation-ui').waitFor({state:'detached'});
         await inspect(page,'desktop-batter-town');
-        await clickGame(page,950,250);
+        await clickGame(page,TOWN_HOTSPOTS.STADIUM.x,TOWN_HOTSPOTS.STADIUM.y);
         await page.waitForTimeout(1000);
         await inspect(page,'desktop-batter-match');
         assert.deepEqual(errors,[],'Console and network errors on batter route');
