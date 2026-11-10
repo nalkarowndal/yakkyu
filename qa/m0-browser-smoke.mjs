@@ -64,7 +64,7 @@ async function createPlayer(page,role,name) {
 }
 try {
     await waitForServer();
-    browser = await chromium.launch({headless:true, args:['--use-angle=swiftshader', '--enable-webgl', '--disable-web-security']});
+    browser = await chromium.launch({headless:true, args:['--use-angle=swiftshader', '--enable-webgl']});
     {
         const errors = [];
         const context = await createContext({width:1280,height:720});
